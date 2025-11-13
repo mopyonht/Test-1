@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ht">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mòpyon</title>
+    <style>
+        /* Dégradé de fond */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #FF0000, #800080, #0000FF);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 4rem;
+            font-weight: bold;
+            margin: 0.5em 0;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-style: italic;
+            margin: 0.5em 0;
+        }
+
+        p {
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0.5em auto;
+            line-height: 1.5;
+        }
+
+        .buttons {
+            margin: 1.5em 0;
+            display: flex;
+            gap: 1em;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 0.8em 1.5em;
+            background-color: red;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: darkred;
+        }
+
+        footer {
+            position: absolute;
+            bottom: 1em;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        /* Media query pour mobile */
+@media (max-width: 600px) {
+    h1 {
+        font-size: 2.5rem; /* réduit la taille du titre */
+    }
+
+    h2 {
+        font-size: 1.2rem; /* réduit la taille du sous-titre */
+    }
+
+    p {
+        font-size: 1rem; /* réduit la taille du texte */
+        max-width: 90%;   /* prend presque toute la largeur */
+        margin-top: 1rem;
+    margin-bottom: 1rem;
+    }
+
+    .btn {
+        padding: 0.6em 1em; /* boutons un peu plus petits */
+        font-size: 0.9rem;
+    }
+
+    .buttons {
+        gap: 0.5em; /* espace entre boutons plus petit */
+        flex-direction: column; /* les boutons empilés pour plus de lisibilité */
+    }
+
+    footer {
+        font-size: 0.9rem; /* footer plus petit */
+    }
+}
+    </style>
+</head>
+<body>
+    <h1>Mòpyon</h1>
+    <h2>Lansman ofisyèl la ap fèt byento.</h2>
+    <p>
+        Annatandan ou ka aprann jwe, antrene w poukont ou oswa jwe ak robo nou an Izana.<br></br>
+        
+        Tanpri kreye yon kont, rete konekte ak nou pou w ka konnen jou lansman ofisyèl la menm. Epi pou w ka kòmanse jwe ak fè lajan tout bon vre.
+    </p>
+
+    <div class="buttons">
+        <a class="btn" href="https://www.tiktok.com/@mopyon.ht" target="_blank">Suiv nou sou TikTok</a>
+        <a class="btn" href="https://whatsapp.com/channel/0029Vb6Io3uHQbS9sIk6zs3d" target="_blank">Suiv nou sou WhatsApp</a>
+        <a class="btn" href="https://www.instagram.com/mopyon.ht?igsh=MXZjZGRjaG1rYWhwcg==" target="_blank">Suiv nou sou Instagram</a>
+    </div>
+    
+    <p>        Mòpyon ! Jwe epi fè lajan nan mwens ke 3 minit !
+</p>
+
+</body>
+</html>

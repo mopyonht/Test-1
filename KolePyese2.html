@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Puzzle d'imbrication — Jeu simple</title>
+  <style>
+    :root{--size:600px;--cells:15}
+    body{font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:#f3f4f6; color:#111; display:flex; gap:24px; padding:50px 50px; align-items:flex-start}
+    .container{display:flex; flex-direction: column; gap:20px}
+    .bottom-section{display:flex; gap:20px; align-items:flex-start}
+    .board-wrap{background:white;padding:24px;border-radius:12px;box-shadow:0 6px 18px rgba(12,12,14,0.08) 
+}
+
+.board-wrap button {
+  padding: 12px 16px;
+  font-size: 1rem;
+  border-radius: 10px;
+}
+    canvas{display:block; background:linear-gradient(180deg,#ffffff,#fbfdff); border-radius:8px}
+    .info{max-width:200px; font-size : 40px; }
+    h1{font-size:40px;margin:0 0 8px}
+    p.small{margin:6px 0;color:#444}
+    .controls{margin-top:12px;display:flex;gap:8px}
+    button{padding:16px 24px;border-radius:8px;border:0;background:#0ea5a4;color:white;cursor:pointer}
+    button.warn{background:#f97316}
+    button.ghost{background:#e6e6e6;color:#111}
+    .stats{margin-top:10px}
+    .bad{color:#e11d48}
+    .good{color:#059669}
+    .hint{font-size:25px;color:#555;margin-top:8px}
+    .shape-box{background:#fff;padding:30px;border-radius:8px;display:flex;flex-direction:column;gap:8px;align-items:center}
+    .small-canvas{width:160px;height:160px;background:#fff;border-radius:8px; touch-action: none;}
+   
+    /* Prevent touch scrolling on the big board while dragging */
+    #board { touch-action: none; -ms-touch-action: none; }
+    
+    .board-wrap {
+  margin-bottom: 50px; /* espace sous le canvas */
+}
+    
+    @media (min-width: 768px) {
+      body { flex-direction: row; align-items: flex-start; }
+      .container { flex-direction: row; align-items: flex-start; max-width: none; }
+      .info { max-width: 300px; min-width: 250px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="board-wrap">
+      <h1>Grand carré — Puzzle d'imbrication</h1>
+      <div style="text-align:left; margin:-5px 0 5px 0; font-size:13px;">
+        Temps: <span id="timer">00:00</span>
+      </div>
+      <canvas id="board" width="1500" height="1500"></canvas>
+      <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+        <button id="passBtn">Refuser</button>
+        <button id="restartBtn" class="ghost">Recommencer</button>
+        <button id="hintBtn" class="ghost">Vérifier placements valides</button>
+        <button id="rotateBtn" class="ghost">Rotation (<span id="rotations">3</span> totales restantes)</button>
+      </div>
+      <div class="shape-box" style="margin-top:10px">
+        <strong>Forme actuelle</strong>
+        <canvas id="shapePreview" class="small-canvas" width="120" height="120"></canvas>
+        <div id="shapeColor">Couleur: <span id="colorText">—</span></div>
+      </div>
+    </div>
+
+    <div class="bottom-section">
+      <div class="info"></div>
+
+      <div class="stats">
+        <div>Grille: <strong>15 × 15</strong></div>
+        <div>Passes totales autorisées: <strong>10</strong></div>
+        <div>Passes restantes : <span id="passes">10</span></div>
+        <div>Occupé: <span id="filled">0</span>/225</div>
+        <div id="message" style="margin-top:8px"></div>
+      </div>
+
+      <div style="margin-top:18px">
+      </div>
+    </div>
+  </div>
+
+<script>
+// Configuration
+const COLS = 15, ROWS = 15, CELL = 100;
+const MAX_PASSES = Infinity;
+
+// Predefined shapes as arrays of [x,y] blocks relative to anchor (top-left of bounding box)
+const SHAPES = [
+  {name:'L', blocks:[[0,0],[0,1],[0,2],[1,2]]},
+  {name:'Small L', blocks:[[0,0],[1,0],[1,1]]},
+  {name:'I3', blocks:[[0,0],[0,1],[0,2]]},
+  {name:'Square3', blocks:[[0,0],[1,0],[0,1]]},
+  {name:'Z', blocks:[[0,0],[1,0],[1,1],[2,1]]},
+  {name:'T', blocks:[[0,1],[1,0],[1,1],[2,1]]},
+  {name:'Big square', blocks:[[0,0],[1,0],[0,1],[1,1]]},
+  {name:'Step', blocks:[[0,0],[0,1],[1,1]]},
+  {name:'Long4', blocks:[[0,0],[0,1],[0,2],[0,3]]},
+  {name:'Corner', blocks:[[0,0],[1,0],[2,0],[2,1]]},
+];
+
+const COLORS = ['#ef4444','#f59e0b','#10b981','#3b82f6','#8b5cf6','#ec4899','#06b6d4'];
+
+// Game state
+let board = Array.from({length:ROWS},()=>Array(COLS).fill(null));
+let currentShape = null; // {blocks, color}
+let passesLeft = MAX_PASSES;
+let filled = 0;
+let gameOver = false;
+let rotationsLeft = 3;
+let currentShapeRotated = false;
+
+let isDragging = false;
+let dragSource = null; // 'preview' or 'board'
+let previewCol = -1;
+let previewRow = -1;
+
+let startTime = 0;
+let timerInterval = null;
+
+const boardCanvas = document.getElementById('board');
+const boardCtx = boardCanvas.getContext('2d');
+const preview = document.getElementById('shapePreview');
+const pctx = preview.getContext('2d');
+const passesSpan = document.getElementById('passes');
+const filledSpan = document.getElementById('filled');
+const messageDiv = document.getElementById('message');
+
+function randChoice(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
+function rotateShapeBlocks(blocks) {
+  // Rotation 90° horaire: (x,y) -> (y, -x), puis normaliser
+  const rotated = blocks.map(([x, y]) => [y, -x]);
+  const minX = Math.min(...rotated.map(b => b[0]));
+  const minY = Math.min(...rotated.map(b => b[1]));
+  return rotated.map(([x, y]) => [x - minX, y - minY]);
+}
+
+function startTimer() {
+  startTime = Date.now();
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(updateTimer, 1000);
+}
+
+function updateTimer() {
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  const minutes = Math.floor(elapsed / 60);
+  const seconds = elapsed % 60;
+  document.getElementById('timer').innerText =
+    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function stopTimer() {
+  if(timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+function newShape(){
+  const sBase = JSON.parse(JSON.stringify(randChoice(SHAPES)));
+  sBase.color = randChoice(COLORS);
+  sBase.name = sBase.name || 'shape';
+  currentShape = sBase;
+  currentShapeRotated = false;
+  drawPreview();
+  message('');
+  checkGameEndConditions();
+}
+
+function drawGrid(){
+  boardCtx.clearRect(0,0,boardCanvas.width,boardCanvas.height);
+  // background
+  boardCtx.fillStyle = '#f0f9ff';
+  boardCtx.fillRect(0,0,boardCanvas.width,boardCanvas.height);
+
+  // grid lines
+  boardCtx.lineWidth = 1;
+  boardCtx.strokeStyle = '#d1d5db';
+  for(let x=0;x<=COLS;x++){
+    boardCtx.beginPath();
+    boardCtx.moveTo(x*CELL,0);
+    boardCtx.lineTo(x*CELL,ROWS*CELL);
+    boardCtx.stroke();
+  }
+  for(let y=0;y<=ROWS;y++){
+    boardCtx.beginPath();
+    boardCtx.moveTo(0,y*CELL);
+    boardCtx.lineTo(COLS*CELL,y*CELL);
+    boardCtx.stroke();
+  }
+
+  // draw placed blocks
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      const val = board[r][c];
+      if(val){
+        boardCtx.fillStyle = val;
+        boardCtx.fillRect(c*CELL+1, r*CELL+1, CELL-2, CELL-2);
+      }
+    }
+  }
+
+  // Drag preview (semi-transparent) if dragging
+  if(isDragging && previewCol >= 0 && previewRow >= 0 && currentShape) {
+    // Check validity
+    let isValid = true;
+    for(const b of currentShape.blocks) {
+      const c = previewCol + b[0];
+      const r = previewRow + b[1];
+      if(c < 0 || c >= COLS || r < 0 || r >= ROWS || board[r][c]) {
+        isValid = false;
+        break;
+      }
+    }
+    boardCtx.globalAlpha = 0.6;
+    boardCtx.fillStyle = isValid ? currentShape.color : '#ef4444';
+    currentShape.blocks.forEach(b => {
+      const c = previewCol + b[0];
+      const r = previewRow + b[1];
+      if(c >= 0 && c < COLS && r >= 0 && r < ROWS) {
+        boardCtx.fillRect(c * CELL + 1, r * CELL + 1, CELL - 2, CELL - 2);
+      }
+    });
+    boardCtx.globalAlpha = 1;
+  }
+}
+
+function drawPreview(){
+  pctx.clearRect(0,0,preview.width,preview.height);
+  pctx.fillStyle = '#fff'; pctx.fillRect(0,0,preview.width,preview.height);
+  if(!currentShape) return;
+  const blocks = currentShape.blocks;
+  let maxX = 0, maxY = 0;
+  blocks.forEach(b=>{ if(b[0]>maxX) maxX=b[0]; if(b[1]>maxY) maxY=b[1]; });
+  const cell = Math.floor(Math.min(preview.width/(maxX+2), preview.height/(maxY+2)) );
+  const offsetX = Math.floor((preview.width - (maxX+1)*cell)/2);
+  const offsetY = Math.floor((preview.height - (maxY+1)*cell)/2);
+  pctx.fillStyle = currentShape.color;
+  blocks.forEach(b=>{
+    const x = offsetX + b[0]*cell;
+    const y = offsetY + b[1]*cell;
+    pctx.fillRect(x+2,y+2,cell-4,cell-4);
+  });
+  document.getElementById('colorText').innerText = currentShape.color;
+}
+
+function placeShapeAt(anchorCol, anchorRow){
+  if(gameOver || !currentShape) return false;
+  const blocks = currentShape.blocks;
+  for(const b of blocks){
+    const c = anchorCol + b[0];
+    const r = anchorRow + b[1];
+    if(c<0 || c>=COLS || r<0 || r>=ROWS) {
+      return false;
+    }
+    if(board[r][c]) {
+      return false;
+    }
+  }
+  // Place
+  for(const b of blocks){
+    const c = anchorCol + b[0];
+    const r = anchorRow + b[1];
+    board[r][c] = currentShape.color;
+    filled++;
+  }
+  updateStats();
+  drawGrid();
+  if(filled === COLS*ROWS){
+    win();
+    return true;
+  }
+  newShape();
+  return true;
+}
+
+function updateStats(){
+  document.getElementById('rotations').innerText = rotationsLeft;
+  passesSpan.innerText = passesLeft;
+  filledSpan.innerText = filled;
+  // disable rotate button if no rotations left
+  document.getElementById('rotateBtn').disabled = (rotationsLeft <= 0);
+}
+
+function passShape(){
+  if(gameOver) return;
+  if(passesLeft<=0) { message('Plus de passes disponibles.', true); return; }
+  passesLeft--;
+  updateStats();
+  newShape();
+}
+
+function restart(){
+  board = Array.from({length:ROWS},()=>Array(COLS).fill(null));
+  passesLeft = MAX_PASSES; filled = 0; gameOver=false; rotationsLeft = 3; currentShapeRotated = false;
+  document.getElementById('rotateBtn').disabled = false;
+  updateStats();
+  drawGrid();
+  newShape();
+  startTimer();
+}
+
+function message(txt, isBad=false){
+  messageDiv.innerText = txt;
+  messageDiv.className = isBad? 'bad': 'good';
+}
+
+function win(){
+  gameOver = true;
+  stopTimer();
+  message('Bravo — carré rempli ! Tu as gagné 🎉');
+}
+
+function lose(){
+  gameOver = true;
+  stopTimer();
+  message('Partie terminée — aucune position possible pour la forme actuelle.', true);
+}
+
+// check if current shape has any valid placement
+function hasValidPlacement(shape){
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      let ok=true;
+      for(const b of shape.blocks){
+        const cc = c + b[0]; const rr = r + b[1];
+        if(cc<0||cc>=COLS||rr<0||rr>=ROWS||board[rr][cc]){ ok=false; break; }
+      }
+      if(ok) return true;
+    }
+  }
+  return false;
+}
+
+function checkGameEndConditions(){
+  if(!currentShape) return;
+  if(!hasValidPlacement(currentShape)){
+    if(passesLeft>0){
+      message('Aucune position possible pour cette forme — tu peux la refuser (pass).', true);
+    } else {
+      lose();
+    }
+  }
+}
+
+/* -------------------------
+   POINTER EVENTS: unified
+   Works for mouse + touch + pen
+   ------------------------- */
+
+function getBoardCoordinatesFromEvent(ev) {
+  const rect = boardCanvas.getBoundingClientRect();
+  const x = ev.clientX - rect.left;
+  const y = ev.clientY - rect.top;
+  const col = Math.floor(x / CELL);
+  const row = Math.floor(y / CELL);
+  return {x, y, col, row};
+}
+
+// Preview pointer handlers: start dragging from preview
+preview.addEventListener('pointerdown', (e) => {
+  if(gameOver || !currentShape) return;
+  e.preventDefault(); // prevent scrolling / native gestures
+  isDragging = true;
+  dragSource = 'preview';
+  preview.setPointerCapture(e.pointerId);
+  preview.style.cursor = 'grabbing';
+});
+
+document.addEventListener('pointermove', (e) => {
+  if(!isDragging || !currentShape) return;
+  if(dragSource === 'preview' || dragSource === 'board') {
+    // Compute position relative to board
+    const rect = boardCanvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    if(x >= 0 && x < boardCanvas.width && y >= 0 && y < boardCanvas.height) {
+      previewCol = Math.floor(x / CELL);
+      previewRow = Math.floor(y / CELL);
+    } else {
+      // Outside grid: show nothing
+      previewCol = -1;
+      previewRow = -1;
+    }
+    drawGrid();
+  }
+});
+
+// Release (pointerup) - handle drop
+document.addEventListener('pointerup', (e) => {
+  if(!isDragging || !currentShape) return;
+  // If we were dragging from preview and released over board -> attempt place
+  if(dragSource === 'preview') {
+    const rect = boardCanvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    if(x >= 0 && x < boardCanvas.width && y >= 0 && y < boardCanvas.height) {
+      const col = Math.floor(x / CELL);
+      const row = Math.floor(y / CELL);
+      const ok = placeShapeAt(col, row);
+      if(!ok) message('Placement invalide — chevauchement ou hors du carré.', true);
+    }
+    // else: released outside -> cancel
+  } else if(dragSource === 'board') {
+    // If user dragged on board canvas and released -> place at last preview coords
+    if(previewCol >= 0 && previewRow >= 0) {
+      const ok = placeShapeAt(previewCol, previewRow);
+      if(!ok) message('Placement invalide — chevauchement ou hors du carré.', true);
+    }
+  }
+  // reset drag state
+  isDragging = false;
+  dragSource = null;
+  previewCol = -1;
+  previewRow = -1;
+  preview.style.cursor = 'default';
+  drawGrid();
+});
+
+// pointerdown on board: start dragging directly from board (so click-and-drag to position)
+boardCanvas.addEventListener('pointerdown', (e) => {
+  if(gameOver || !currentShape) return;
+  e.preventDefault();
+  isDragging = true;
+  dragSource = 'board';
+  boardCanvas.setPointerCapture(e.pointerId);
+  const coords = getBoardCoordinatesFromEvent(e);
+  previewCol = coords.col;
+  previewRow = coords.row;
+  drawGrid();
+});
+
+// pointerleave on board: if pointer leaves while dragging (desktop), cancel drag from board
+boardCanvas.addEventListener('pointerleave', (e) => {
+  // pointerleave fires even when dragging; only cancel if dragging from board
+  if(isDragging && dragSource === 'board') {
+    isDragging = false;
+    dragSource = null;
+    previewCol = -1;
+    previewRow = -1;
+    boardCanvas.style.cursor = 'default';
+    drawGrid();
+  }
+});
+
+/* Hint button: highlight valid positions briefly */
+document.getElementById('hintBtn').addEventListener('click', ()=>{
+  if(!currentShape || gameOver) return;
+  const positions = [];
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      let ok=true;
+      for(const b of currentShape.blocks){
+        const cc = c + b[0], rr = r + b[1];
+        if(cc<0||cc>=COLS||rr<0||rr>=ROWS||board[rr][cc]){ ok=false; break; }
+      }
+      if(ok) positions.push([c,r]);
+    }
+  }
+  if(positions.length===0){ message('Aucune position valide pour cette forme.', true); return; }
+  let i=0; const interval = setInterval(()=>{
+    drawGrid();
+    const [c,r] = positions[i%positions.length];
+    boardCtx.globalAlpha = 0.45;
+    boardCtx.fillStyle = currentShape.color;
+    currentShape.blocks.forEach(b=>{
+      boardCtx.fillRect((c+b[0])*CELL+1, (r+b[1])*CELL+1, CELL-2, CELL-2);
+    });
+    boardCtx.globalAlpha = 1;
+    i++; if(i>positions.length*2){ clearInterval(interval); drawGrid(); }
+  }, 180);
+});
+
+// pass and restart
+document.getElementById('passBtn').addEventListener('click', ()=>{ passShape(); });
+document.getElementById('restartBtn').addEventListener('click', ()=>{ restart(); });
+
+// rotation button (keeps previous behavior but uses rotateShapeBlocks)
+document.getElementById('rotateBtn').addEventListener('click', () => {
+  if(!currentShape || gameOver) return;
+  if(rotationsLeft <= 0 && !currentShapeRotated) return;
+  if(!currentShapeRotated) {
+    rotationsLeft--;
+    currentShapeRotated = true;
+    updateStats();
+  }
+  currentShape.blocks = rotateShapeBlocks(currentShape.blocks);
+  drawPreview();
+  checkGameEndConditions();
+});
+
+// init
+restart();
+</script>
+</body>
+</html>
