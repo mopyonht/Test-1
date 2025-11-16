@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tounwa Mopyon</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --bg: #f8fafc;
+      --card: #ffffff;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 30px;
+      background: linear-gradient(135deg, var(--primary), #1e40af);
+      color: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
+    }
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+    .balance-display {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.2);
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-top: 15px;
+    }
+    .category {
+      margin-bottom: 50px;
+      background: var(--card);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .category-title {
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .category-badge {
+      background: var(--primary);
+      color: white;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .category-desc {
+      color: #64748b;
+      margin-bottom: 20px;
+      font-size: 0.95rem;
+    }
+    .tournaments-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+    }
+    .tournament-btn {
+      position: relative;
+      background: linear-gradient(135deg, #ffffff, #f1f5f9);
+      border: 2px solid #e2e8f0;
+      padding: 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: left;
+    }
+    .tournament-btn:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.15);
+    }
+    .tournament-btn:active {
+      transform: translateY(0);
+    }
+    .tournament-fee {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .tournament-reward {
+      font-size: 0.9rem;
+      color: var(--success);
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .tournament-stats {
+      display: flex;
+      gap: 12px;
+      font-size: 0.8rem;
+      color: #64748b;
+      padding-top: 10px;
+      border-top: 1px solid #e2e8f0;
+    }
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .stat-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+    }
+    .icon-waiting { background: #fbbf24; }
+    .icon-playing { background: #10b981; }
+    
+    /* Modal d'attente */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      max-width: 450px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      animation: modalSlideIn 0.3s ease;
+    }
+    @keyframes modalSlideIn {
+      from { transform: translateY(-30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .modal-title {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      color: #1e293b;
+    }
+    .waiting-info {
+      font-size: 3rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin: 20px 0;
+    }
+    .waiting-text {
+      color: #64748b;
+      margin-bottom: 30px;
+      font-size: 1.1rem;
+    }
+    .cancel-btn {
+      background: var(--danger);
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .cancel-btn:hover {
+      background: #b91c1c;
+      transform: scale(1.05);
+    }
+    .insufficient-funds {
+      background: #fef2f2;
+      color: var(--danger);
+      padding: 12px 20px;
+      border-radius: 8px;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header h1 { font-size: 1.8rem; }
+      .category-title { font-size: 1.4rem; }
+      .tournaments-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🏆 Tounwa Mopyon</h1>
+      <p>Chwazi kategori w epi jwè pou w genyen!</p>
+      <div class="balance-display">
+        💰 <span id="userBalance">0</span> GDS
+      </div>
+      <div style="margin-top: 15px; font-size: 0.9rem; opacity: 0.9;">
+        Jwè: <span id="userName">Chajman...</span>
+      </div>
+    </div>
+
+    <!-- Catégorie TEST (2 participants) -->
+    <div class="category">
+      <div class="category-title">
+        <span>🧪 TEST</span>
+        <span class="category-badge">2 Patisipan</span>
+      </div>
+      <p class="category-desc">Kategori tès pou asire sistèm nan ap mache byen</p>
+      <div class="tournaments-grid">
+        <button class="tournament-btn" onclick="joinTournament('test', 2, 25, 50)">
+          <div class="tournament-fee">25 GDS</div>
+          <div class="tournament-reward">🎁 Rekonpans: 50 GDS</div>
+          <div class="tournament-stats">
+            <div class="stat-item"><span class="stat-icon icon-waiting"></span><span id="wait-test-2-25">0</span></div>
+            <div class="stat-item"><span class="stat-icon icon-playing"></span><span id="play-test-2-25">0</span></div>
+          </div>
+        </button>
+        <button class="tournament-btn" onclick="joinTournament('test', 2, 50, 100)">
+          <div class="tournament-fee">50 GDS</div>
+          <div class="tournament-reward">🎁 Rekonpans: 100 GDS</div>
+          <div class="tournament-stats">
+            <div class="stat-item"><span class="stat-icon icon-waiting"></span><span id="wait-test-2-50">0</span></div>
+            <div class="stat-item"><span class="stat-icon icon-playing"></span><span id="play-test-2-50">0</span></div>
+          </div>
+        </button>
+        <button class="tournament-btn" onclick="joinTournament('test', 2, 100, 200)">
+          <div class="tournament-fee">100 GDS</div>
+          <div class="tournament-reward">🎁 Rekonpans: 200 GDS</div>
+          <div class="tournament-stats">
+            <div class="stat-item"><span class="stat-icon icon-waiting"></span><span id="wait-test-2-100">0</span></div>
+            <div class="stat-item"><span class="stat-icon icon-playing"></span><span id="play-test-2-100">0</span></div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Catégorie 10 participants -->
+    <div class="category">
+      <div class="category-title">
+        <span>⚡ RAPID</span>
+        <span class="category-badge">10 Patisipan</span>
+      </div>
+      <p class="category-desc">Tounwa rapid ak konpetisyon entans</p>
+      <div class="tournaments-grid">
+        <button class="tournament-btn" onclick="joinTournament('rapid', 10, 25, 200)">
+          <div class="tournament-fee">25 GDS</div>
+          <div class="tournament-reward">🎁 Rekonpans: 200 GDS</div>
+          <div class="tournament-stats">
+            <div class="stat-item"><span class="stat-icon icon-waiting"></span><span id="wait-rapid-10-25">0</span></div>
+            <div class="stat-item"><span class="stat-icon icon-playing"></span><span id="play-rapid-10-25">0</span></div>
+          </div>
+        </button>
+        <button class="tournament-btn" onclick="joinTournament('rapid', 10, 50, 400)">
+          <div class="tournament-fee">50 GDS</div>
+          <div class="tournament-reward">🎁 Rekonpans: 400 GDS</div>
+          <div class="tournament-stats">
+            <div class="stat-item"><span class="stat-icon icon-waiting"></span><span id="wait-rapid-10-50">0</span></div>
+            <div class="stat-item"><span class="stat-icon icon-playing"></span><span id="play-rapid-10-50">0</span></div>
+          </div>
+        </button>
+        <button class="tournament-btn" onclick="joinTournament('rapid', 10, 100, 800)">
+          <div class="tournament-fee">100 GDS</div>
+          <div class="tournament-reward">🎁 Rekonpans: 800 GDS</div>
+          <div class="tournament-stats">
+            <div class="stat-item"><span class="stat-icon icon-waiting"></span><span id="wait-rapid-10-100">0</span></div>
+            <div class="stat-item"><span class="stat-icon icon-playing"></span><span id="play-rapid-10-100">0</span></div>
+          </div>
+        </button>
+        <button class="tournament-btn" onclick="joinTournament('rapid', 10, 250, 2000)">
+          <div class="tournament-fee">250 GDS</div>
+          <div class="tournament-reward">🎁 Rekonpans: 2000 GDS</div>
+          <div class="tournament-stats">
+            <div class="stat-item"><span class="stat-icon icon-waiting"></span><span id="wait-rapid-10-250">0</span></div>
+            <div class="stat-item"><span class="stat-icon icon-playing"></span><span id="play-rapid-10-250">0</span></div>
+          </div>
+        </button>
+        <button class="tournament-btn" onclick="joinTournament('rapid', 10, 500, 4000)">
+          <div class="tournament-fee">500 GDS</div>
+          <div class="tournament-reward">🎁 Rekonpans: 4000 GDS</div>
+          <div class="tournament-stats">
+            <div class="stat-item"><span class="stat-icon icon-waiting"></span><span id="wait-rapid-10-500">0</span></div>
+            <div class="stat-item"><span class="stat-icon icon-playing"></span><span id="play-rapid-10-500">0</span></div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Modal d'attente -->
+  <div class="modal" id="waitingModal">
+    <div class="modal-content">
+      <div class="modal-title">⏳ Ap tann jwè yo...</div>
+      <div class="waiting-info">
+        <span id="currentPlayers">0</span> / <span id="maxPlayers">0</span>
+      </div>
+      <div class="waiting-text">Jwè ap antre nan sal la...</div>
+      <button class="cancel-btn" onclick="cancelWaiting()">Anile</button>
+      <div id="insufficientFunds" class="insufficient-funds" style="display:none;">
+        ❌ Ou pa gen ase lajan pou patisipe!
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  
+  <script>
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDpylenTapoLXwbMsEavlLt0po5M_bVDBo",
+      authDomain: "mopyonsiteweb.firebaseapp.com",
+      databaseURL: "https://mopyonsiteweb-default-rtdb.firebaseio.com/",
+      projectId: "mopyonsiteweb",
+      storageBucket: "mopyonsiteweb.firebasestorage.app",
+      messagingSenderId: "535172052074",
+      appId: "1:535172052074:web:c30cefea18ffed7a27c613"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const rtdb = firebase.database();
+  </script>
+  
+  <script src="firebaseTournaments.js"></script>
+</body>
+</html>
