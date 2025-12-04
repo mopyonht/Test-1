@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>🎯 Idantik - Tournoi</title>
+  <style>
+    :root{--bg:#0f1621;--card:#0b1220;--accent:#7bd389;--muted:#cfd8e3}
+    *{box-sizing:border-box;font-family:Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial}
+    body{margin:0;background:linear-gradient(180deg,white 0%,grey 100%);color:var(--muted);display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:0 10px}
+    
+    /* ===== NOUVEAU : Barre info tournoi ===== */
+    .tournament-info-bar{width:100%;max-width:980px;background:#fff;border-radius:8px;padding:15px;box-shadow:0 2px 8px rgba(0,0,0,0.1);margin:15px 0}
+    .tournament-info-bar h3{margin:0 0 10px 0;font-size:16px;color:#333}
+    .tournament-stats{display:flex;gap:20px;flex-wrap:wrap;font-size:14px}
+    .tournament-stats .stat{display:flex;flex-direction:column}
+    .tournament-stats .stat-label{color:#666;font-size:12px}
+    .tournament-stats .stat-value{font-weight:700;color:#059669;font-size:16px}
+    
+    header{width:100%;max-width:980px;padding:18px 20px;display:flex;justify-content:space-between;align-items:center}
+    h1{margin:0;font-size:18px;color:var(--accent)}
+    .controls{display:flex;gap:10px;align-items:center}
+    .panel{background:#0b1220;padding:14px;border-radius:12px;box-shadow:0 6px 20px rgba(2,6,23,0.6)}
+    #game-area{width:100%;max-width:980px;padding:18px;display:flex;gap:18px;flex-direction:column;align-items:center}
+    canvas{background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);border-radius:10px;display:block}
+    .hud{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+    .big{font-size:24px;color:#fff;font-weight:700}
+    .timer-section{display:flex;align-items:center;gap:10px}
+    .timer-bar{height:12px;border-radius:8px;background:rgba(255,255,255,0.06);overflow:hidden;width:200px}
+    .timer-fill{height:100%;width:100%;background:linear-gradient(90deg,#7bd389,#4bc0f0);transform-origin:left;transition:width 0.04s linear}
+    .buttons{display:flex;gap:12px;flex-direction:column;align-items:center;width:100%}
+    .main-buttons{display:flex;gap:12px;width:100%}
+    .secondary-buttons{display:flex;gap:8px}
+    button.btn{padding:16px 24px;border-radius:10px;border:0;background:#15202b;color:white;font-weight:600;cursor:pointer;font-size:16px;flex:1;min-height:60px}
+    button.btn.secondary{padding:10px 16px;font-size:14px;background:#1a2533;min-height:auto;flex:none}
+    button.btn:active{transform:translateY(1px)}
+    button.btn.abandon{background:#dc2626}
+    .feedback{height:50px;font-weight:700;font-size:48px;display:flex;align-items:center;justify-content:center}
+    .lives{display:flex;gap:6px;font-size:24px}
+    .footer{margin-top:8px;font-size:13px;color:#9fb1c9;text-align:center}
+    
+    /* ===== NOUVEAU : Modal Game Over ===== */
+    .game-over-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:10000;align-items:center;justify-content:center}
+    .game-over-modal.active{display:flex}
+    .game-over-content{background:#fff;border-radius:12px;padding:30px;max-width:400px;width:90%;text-align:center}
+    .game-over-content h2{margin:0 0 20px 0;font-size:28px;color:#333}
+    .game-over-content .final-score{font-size:48px;font-weight:800;color:#059669;margin:20px 0}
+    .game-over-content .stats{display:flex;justify-content:space-around;margin:20px 0;padding:20px 0;border-top:2px solid #e5e7eb;border-bottom:2px solid #e5e7eb}
+    .game-over-content .stats .stat{display:flex;flex-direction:column}
+    .game-over-content .stats .stat-label{font-size:12px;color:#666}
+    .game-over-content .stats .stat-value{font-size:20px;font-weight:700;color:#333}
+    .game-over-actions{display:flex;gap:10px;margin-top:20px}
+    .game-over-actions .btn{flex:1;padding:15px;font-size:16px;min-height:auto}
+    .btn-replay{background:#059669}
+    .btn-home{background:#6b7280}
+    
+    @media(max-width:640px){
+      body{padding:0 8px}
+      .tournament-info-bar{padding:10px;margin:10px 0}
+      .tournament-stats{gap:10px}
+      header{padding:12px 8px;flex-direction:column;gap:12px;align-items:stretch}
+      h1{font-size:16px;text-align:center}
+      .controls{flex-direction:column;gap:8px;width:100%}
+      .panel{padding:10px 12px}
+      #game-area{padding:12px 8px;gap:12px}
+      canvas{width:100%!important;height:240px!important}
+      .hud{flex-direction:column;gap:12px;align-items:stretch}
+      .timer-section{justify-content:space-between;width:100%}
+      .timer-bar{flex:1;min-width:120px}
+      .big{font-size:20px}
+      .feedback{font-size:36px;height:40px}
+      button.btn{font-size:18px;min-height:56px;padding:14px 20px}
+      button.btn.secondary{font-size:13px;padding:8px 14px}
+      .main-buttons{flex-direction:row}
+      .footer{font-size:12px;padding:0 8px}
+      .lives{font-size:20px}
+    }
+    
+    @media(max-width:400px){
+      h1{font-size:14px}
+      canvas{height:200px!important}
+      button.btn{font-size:16px;min-height:52px}
+      .big{font-size:18px}
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== NOUVEAU : Barre info tournoi ===== -->
+  <div class="tournament-info-bar">
+    <h3 id="tournamentName">Chargement...</h3>
+    <div class="tournament-stats">
+      <div class="stat">
+        <span class="stat-label">💰 Prize Pool</span>
+        <span class="stat-value" id="prizePool">--</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">👥 Patisipan</span>
+        <span class="stat-value" id="participantCount">--</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">⏳ Tan Ki Rete</span>
+        <span class="stat-value" id="timeRemaining">--:--:--</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">🎮 Ou Pati</span>
+        <span class="stat-value" id="myGamesPlayed">--</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">🏆 Ou Meyè Skor</span>
+        <span class="stat-value" id="myBestScore">--</span>
+      </div>
+    </div>
+  </div>
+
+  <header>
+    <h1>🎯 Idantik — Tournoi</h1>
+    <div class="controls">
+      <div class="panel">
+        <div>Score: <span id="score" class="big">0</span></div>
+      </div>
+      <div class="panel">
+        <div class="lives" id="lives">❤️ ❤️ ❤️</div>
+      </div>
+    </div>
+  </header>
+
+  <main id="game-area">
+    <div class="hud">
+      <div class="feedback" id="feedback">&nbsp;</div>
+      <div class="timer-section">
+        <div class="timer-bar panel"><div id="timerFill" class="timer-fill" style="width:100%"></div></div>
+        <div class="panel"><span id="timeLeft" class="big">3.00s</span></div>
+      </div>
+    </div>
+
+    <canvas id="board" width="900" height="340" aria-label="Zone de jeu dessinant trois formes"></canvas>
+
+    <div class="buttons">
+      <div class="main-buttons">
+        <button id="yesBtn" class="btn">OUI</button>
+        <button id="noBtn" class="btn">NON</button>
+      </div>
+      <div class="secondary-buttons">
+        <button id="startBtn" class="btn secondary">Démarrer</button>
+        <button id="abandonBtn" class="btn secondary abandon">Abandone</button>
+      </div>
+    </div>
+
+    <div class="footer">Les couleurs sont purement esthétiques — seul le type de forme compte.</div>
+  </main>
+
+  <!-- ===== NOUVEAU : Modal Game Over ===== -->
+  <div id="gameOverModal" class="game-over-modal">
+    <div class="game-over-content">
+      <h2>🎮 Pati Fini!</h2>
+      <div class="final-score" id="finalScore">0</div>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-label">⏱️ Durasyon</span>
+          <span class="stat-value" id="gameDuration">--</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">📊 Rasyon</span>
+          <span class="stat-value" id="gameRatio">--</span>
+        </div>
+      </div>
+      <div class="game-over-actions">
+        <button id="replayBtn" class="btn btn-replay">🔄 Rejwe</button>
+        <button id="homeBtn" class="btn btn-home">🏠 Akèy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDpylenTapoLXwbMsEavlLt0po5M_bVDBo",
+      authDomain: "mopyonsiteweb.firebaseapp.com",
+      projectId: "mopyonsiteweb",
+      storageBucket: "mopyonsiteweb.firebasestorage.app",
+      messagingSenderId: "535172052074",
+      appId: "1:535172052074:web:c30cefea18ffed7a27c613"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+  </script>
+
+  <script>
+  (function(){
+    // ===== NOUVEAU : Variables tournoi =====
+    const tournamentInfo = JSON.parse(localStorage.getItem('currentTournament') || '{}');
+    if (!tournamentInfo.tournamentId) {
+      alert("Erè: Pa gen enfòmasyon sou tounwa a!");
+      window.location.href = 'tournaments-home-idantik.html';
+      return;
+    }
+
+    const { tournamentId, entryFee, tournamentName } = tournamentInfo;
+    let currentUser = null;
+    let tournament = null;
+    let myParticipantData = null;
+    let gameStartTime = null;
+
+    // ===== NOUVEAU : Auth et chargement tournoi =====
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        currentUser = user;
+        await loadTournamentData();
+      } else {
+        window.location.href = 'tournaments-home-idantik.html';
+      }
+    });
+
+    async function loadTournamentData() {
+      try {
+        const tournamentDoc = await db.collection('tournaments').doc(tournamentId).get();
+        if (!tournamentDoc.exists || tournamentDoc.data().status !== 'active') {
+          alert("Tounwa sa pa disponib ankò!");
+          window.location.href = 'tournaments-home-idantik.html';
+          return;
+        }
+        
+        tournament = tournamentDoc.data();
+        
+        if (tournament.endTime.toDate() < new Date()) {
+          alert("Tounwa sa fini deja!");
+          window.location.href = 'tournaments-home-idantik.html';
+          return;
+        }
+        
+        const participantDoc = await db.collection('tournaments')
+          .doc(tournamentId).collection('participants').doc(currentUser.uid).get();
+        
+        if (!participantDoc.exists) {
+          alert("Ou pa anrejistre nan tounwa sa!");
+          window.location.href = 'tournaments-home-idantik.html';
+          return;
+        }
+        
+        myParticipantData = participantDoc.data();
+        displayTournamentInfo();
+        listenTournamentUpdates();
+        
+      } catch (error) {
+        console.error("Erreur:", error);
+        alert("Erè chajman!");
+      }
+    }
+
+    function displayTournamentInfo() {
+      document.getElementById('tournamentName').textContent = tournament.name;
+      document.getElementById('prizePool').textContent = formatGDS(Math.floor(tournament.totalPot * 0.8));
+      document.getElementById('participantCount').textContent = tournament.participantCount || 0;
+      document.getElementById('myGamesPlayed').textContent = myParticipantData.totalGamesPlayed || 0;
+      document.getElementById('myBestScore').textContent = myParticipantData.bestScore || 0;
+      startCountdown(tournament.endTime.toDate());
+    }
+
+    function startCountdown(endTime) {
+      const updateTimer = () => {
+        const diff = endTime - new Date();
+        const timerEl = document.getElementById('timeRemaining');
+        
+        if (diff <= 0) {
+          timerEl.textContent = 'FINI';
+          timerEl.style.color = '#dc2626';
+          if (running) handleGameOver();
+          return;
+        }
+        
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        timerEl.textContent = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+      };
+      updateTimer();
+      setInterval(updateTimer, 1000);
+    }
+
+    function listenTournamentUpdates() {
+      db.collection('tournaments').doc(tournamentId).onSnapshot(doc => {
+        if (!doc.exists) return;
+        tournament = doc.data();
+        document.getElementById('prizePool').textContent = formatGDS(Math.floor(tournament.totalPot * 0.8));
+        document.getElementById('participantCount').textContent = tournament.participantCount || 0;
+      });
+      
+      db.collection('tournaments').doc(tournamentId).collection('participants')
+        .doc(currentUser.uid).onSnapshot(doc => {
+          if (!doc.exists) return;
+          myParticipantData = doc.data();
+          document.getElementById('myGamesPlayed').textContent = myParticipantData.totalGamesPlayed || 0;
+          document.getElementById('myBestScore').textContent = myParticipantData.bestScore || 0;
+        });
+    }
+
+    // ===== NOUVEAU : Soumission score =====
+    async function submitScore(score, duration) {
+      try {
+        const tournamentDoc = await db.collection('tournaments').doc(tournamentId).get();
+        
+        if (!tournamentDoc.exists) {
+          alert("❌ Tounwa sa pa egziste ankò!");
+          window.location.href = 'tournaments-home-idantik.html';
+          return false;
+        }
+        
+        const tournamentInfo = tournamentDoc.data();
+        
+        if (tournamentInfo.status !== 'active') {
+          alert("❌ Tounwa sa te fèmen deja! Skor ou pa ka konte.");
+          window.location.href = 'tournaments-home-idantik.html';
+          return false;
+        }
+        
+        if (tournamentInfo.closedAt) {
+          alert("❌ Admin te fèmen tounwa sa! Skor ou pa ka konte.");
+          window.location.href = 'tournaments-home-idantik.html';
+          return false;
+        }
+        
+        if (tournamentInfo.endTime.toDate() < new Date()) {
+          alert("❌ Tan tounwa fini! Skor ou pa ka konte.");
+          window.location.href = 'tournaments-home-idantik.html';
+          return false;
+        }
+        
+        const ratio = (score / (duration / 1000)).toFixed(2);
+        
+        await db.collection('tournaments')
+          .doc(tournamentId)
+          .collection('scores')
+          .add({
+            userId: currentUser.uid,
+            score: score,
+            duration: duration,
+            ratio: parseFloat(ratio),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        
+        const participantRef = db.collection('tournaments')
+          .doc(tournamentId)
+          .collection('participants')
+          .doc(currentUser.uid);
+        
+        const participantDoc = await participantRef.get();
+        const currentBest = participantDoc.exists ? participantDoc.data().bestScore : 0;
+        
+        if (score > currentBest) {
+          await participantRef.update({
+            bestScore: score,
+            bestGameDuration: duration,
+            totalGamesPlayed: firebase.firestore.FieldValue.increment(1)
+          });
+        } else {
+          await participantRef.update({
+            totalGamesPlayed: firebase.firestore.FieldValue.increment(1)
+          });
+        }
+        
+        return true;
+        
+      } catch (error) {
+        console.error("Erreur soumission score:", error);
+        return false;
+      }
+    }
+
+    function showGameOverScreen(sc, dur) {
+      document.getElementById('finalScore').textContent = sc;
+      document.getElementById('gameDuration').textContent = formatDuration(dur);
+      document.getElementById('gameRatio').textContent = (sc/(dur/1000)).toFixed(2) + ' p/s';
+      document.getElementById('gameOverModal').classList.add('active');
+    }
+
+    async function replayTournament() {
+      const tDoc = await db.collection('tournaments').doc(tournamentId).get();
+      if (!tDoc.exists || tDoc.data().status !== 'active') {
+        alert("Tounwa sa fini!");
+        goHome();
+        return;
+      }
+      
+      const userDoc = await db.collection('users').doc(currentUser.uid).get();
+      const balance = userDoc.data().balance || 0;
+      
+      if (balance < entryFee) {
+        alert(`Ou pa gen ase lajan! ${balance} GDS`);
+        goHome();
+        return;
+      }
+      
+      await db.collection('users').doc(currentUser.uid).update({
+        balance: firebase.firestore.FieldValue.increment(-entryFee)
+      });
+      
+      await db.collection('tournaments').doc(tournamentId).collection('participants')
+        .doc(currentUser.uid).update({
+          totalPaid: firebase.firestore.FieldValue.increment(entryFee)
+        });
+      
+      await db.collection('tournaments').doc(tournamentId).update({
+        totalPot: firebase.firestore.FieldValue.increment(entryFee)
+      });
+      
+      location.reload();
+    }
+
+    function goHome() {
+      window.location.href = 'tournaments-home-idantik.html';
+    }
+
+    function formatGDS(n) { return n.toLocaleString() + ' GDS'; }
+    function formatDuration(ms) {
+      const s = Math.floor(ms/1000);
+      const m = Math.floor(s/60);
+      return `${m}:${(s%60).toString().padStart(2,'0')}`;
+    }
+
+    // ===== EVENT LISTENERS NOUVEAUX =====
+    document.getElementById('abandonBtn').addEventListener('click', async () => {
+      if (!running || !confirm("Ou vle abandone?")) return;
+      await handleGameOver();
+    });
+
+    document.getElementById('replayBtn').addEventListener('click', replayTournament);
+    document.getElementById('homeBtn').addEventListener('click', goHome);
+
+    // ===== CODE JEU ORIGINAL (avec modifications) =====
+    const shapesList = [
+      'circle', 'square', 'roundedSquare', 'rectangle', 'roundedRect',
+      'triangle', 'diamond', 'pentagon', 'hexagon', 'star', 'ellipse'
+    ];
+
+    const colors = [
+      '#ef476f','#ffd166','#06d6a0','#118ab2','#073b4c','#8ecae6','#ffb4a2','#a0c4ff','#bdb2ff','#ffc6ff'
+    ];
+    
+    const similarShapes = [
+      ['square', 'roundedSquare', 'diamond'],
+      ['rectangle', 'roundedRect'],
+      ['circle', 'ellipse'],
+      ['pentagon', 'hexagon']
+    ];
+
+    const canvas = document.getElementById('board');
+    const ctx = canvas.getContext('2d');
+    const yesBtn = document.getElementById('yesBtn');
+    const noBtn = document.getElementById('noBtn');
+    const startBtn = document.getElementById('startBtn');
+    const scoreEl = document.getElementById('score');
+    const livesEl = document.getElementById('lives');
+    const feedbackEl = document.getElementById('feedback');
+    const timerFill = document.getElementById('timerFill');
+    const timeLeftEl = document.getElementById('timeLeft');
+
+    let timeLimit = 3.0;
+    let timer = null;
+    let endTime = 0;
+    let current = null;
+    let score = 0;
+    let lives = 3;
+    let running = false;
+
+    function resizeCanvas(){
+      const ratio = window.devicePixelRatio || 1;
+      const maxWidth = Math.min(980, window.innerWidth - 40);
+      const width = maxWidth;
+      const isMobile = window.innerWidth <= 640;
+      const height = isMobile ? 240 : 340;
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      canvas.width = Math.floor(width * ratio);
+      canvas.height = Math.floor(height * ratio);
+      ctx.setTransform(ratio,0,0,ratio,0,0);
+      renderCurrent();
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function randInt(max){ return Math.floor(Math.random()*max); }
+    function choose(arr){ return arr[randInt(arr.length)]; }
+    
+function genRound(){
+      const converge = Math.random() < 0.5;
+      const useSimilar = Math.random() < 0.5;
+      let shapes = [];
+      
+      if(converge){
+        const s = choose(shapesList);
+        shapes = [s,s,s];
+      } else {
+        if(useSimilar && similarShapes.length > 0){
+          const group = choose(similarShapes);
+          if(group.length >= 2){
+            const shape1 = choose(group);
+            let shape2 = choose(group);
+            while(shape2 === shape1 && group.length > 1){
+              shape2 = choose(group);
+            }
+            const shape3 = choose(group);
+            shapes = [shape1, shape2, shape3];
+          } else {
+            while(true){
+              shapes = [choose(shapesList), choose(shapesList), choose(shapesList)];
+              if(!(shapes[0]===shapes[1] && shapes[1]===shapes[2])) break;
+            }
+          }
+        } else {
+          while(true){
+            shapes = [choose(shapesList), choose(shapesList), choose(shapesList)];
+            if(!(shapes[0]===shapes[1] && shapes[1]===shapes[2])) break;
+          }
+        }
+      }
+      
+      const cols = [choose(colors), choose(colors), choose(colors)];
+      return {shapes:shapes, colors:cols, convergent: (shapes[0]===shapes[1]&&shapes[1]===shapes[2])};
+    }
+
+    function drawShape(type, color, cx, cy, size){
+      ctx.save();
+      ctx.translate(cx,cy);
+      ctx.fillStyle = color;
+      ctx.strokeStyle = '#ffffff22';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      switch(type){
+        case 'circle':
+          ctx.arc(0,0,size*0.45,0,Math.PI*2); ctx.fill(); break;
+        case 'ellipse':
+          ctx.ellipse(0,0,size*0.5,size*0.33,0,0,Math.PI*2); ctx.fill(); break;
+        case 'square':
+          ctx.fillRect(-size*0.4,-size*0.4,size*0.8,size*0.8); break;
+        case 'roundedSquare':
+          roundRect(ctx,-size*0.4,-size*0.4,size*0.8,size*0.8, size*0.12); ctx.fill(); break;
+        case 'rectangle':
+          ctx.fillRect(-size*0.45,-size*0.32,size*0.9,size*0.64); break;
+        case 'roundedRect':
+          roundRect(ctx,-size*0.45,-size*0.32,size*0.9,size*0.64, size*0.08); ctx.fill(); break;
+        case 'triangle':
+          ctx.moveTo(0,-size*0.45); ctx.lineTo(size*0.42,size*0.35); ctx.lineTo(-size*0.42,size*0.35); ctx.closePath(); ctx.fill(); break;
+        case 'diamond':
+          ctx.rotate(Math.PI/4); ctx.fillRect(-size*0.36,-size*0.36,size*0.72,size*0.72); break;
+        case 'pentagon':
+          regularPoly(ctx,5,size*0.43); ctx.fill(); break;
+        case 'hexagon':
+          regularPoly(ctx,6,size*0.42); ctx.fill(); break;
+        case 'star':
+          star(ctx,5,size*0.45,size*0.2); ctx.fill(); break;
+        default:
+          ctx.fillRect(-size*0.4,-size*0.4,size*0.8,size*0.8);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function roundRect(ctx,x,y,w,h,r){
+      const rr = Math.min(r, w/2, h/2);
+      ctx.beginPath();
+      ctx.moveTo(x+rr,y);
+      ctx.arcTo(x+w,y,x+w,y+h,rr);
+      ctx.arcTo(x+w,y+h,x,y+h,rr);
+      ctx.arcTo(x,y+h,x,y,rr);
+      ctx.arcTo(x,y,x+w,y,rr);
+      ctx.closePath();
+    }
+
+    function regularPoly(ctx,n,r){
+      const ang = Math.PI*2/n;
+      ctx.beginPath();
+      for(let i=0;i<n;i++){
+        const a = -Math.PI/2 + i*ang;
+        const x = Math.cos(a)*r; const y = Math.sin(a)*r;
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.closePath();
+    }
+
+    function star(ctx,points,outer,inner){
+      ctx.beginPath();
+      const step = Math.PI/points;
+      for(let i=0;i<2*points;i++){
+        const r = (i%2===0)?outer:inner;
+        const a = -Math.PI/2 + i*step;
+        const x = Math.cos(a)*r; const y = Math.sin(a)*r;
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.closePath();
+    }
+
+    function renderCurrent(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      const w = parseFloat(canvas.style.width);
+      const h = parseFloat(canvas.style.height);
+      const margin = 30;
+      const zoneW = (w - margin*2) / 3;
+      const cxList = [margin + zoneW/2, margin + zoneW/2 + zoneW, margin + zoneW/2 + 2*zoneW];
+      const cy = h/2;
+      const size = Math.min(zoneW*0.9, h*0.8)/1.6;
+
+      ctx.fillStyle = 'rgba(255,255,255,0.02)';
+      for(let i=0;i<3;i++){
+        const x = margin + i*zoneW;
+        ctx.fillRect(x + 8, (h- (size*1.5))/2 + 8, zoneW - 16, size*1.5);
+      }
+
+      if(!current) return;
+      for(let i=0;i<3;i++){
+        drawShape(current.shapes[i], current.colors[i], cxList[i], cy, size);
+      }
+    }
+
+    function updateLives(){
+      const hearts = ['❤️', '❤️', '❤️'];
+      for(let i = 0; i < 3; i++){
+        if(i >= lives) hearts[i] = '🖤';
+      }
+      livesEl.innerHTML = hearts.join(' ');
+    }
+
+    function startTimer(){
+      clearInterval(timer);
+      endTime = performance.now() + timeLimit*1000;
+      timer = setInterval(()=>{
+        const now = performance.now();
+        const left = Math.max(0, (endTime - now)/1000);
+        const pct = Math.max(0, left / timeLimit);
+        timerFill.style.width = (pct*100) + '%';
+        timeLeftEl.textContent = left.toFixed(2) + 's';
+        if(left <= 0){ clearInterval(timer); onTimeout(); }
+      }, 40);
+    }
+
+    function stopTimer(){ clearInterval(timer); timer = null; }
+
+    function onTimeout(){
+      feedback('⏰', 'bad');
+      running = false;
+      lives--;
+      updateLives();
+      if(lives <= 0){
+        handleGameOver(); // ← MODIFIÉ
+      } else {
+        setTimeout(nextRound, 800);
+      }
+    }
+
+    function feedback(txt,state){
+      feedbackEl.textContent = txt;
+      feedbackEl.style.color = (state==='good')? '#7bd389' : (state==='bad')? '#ff6b6b' : '#ffd166';
+      setTimeout(()=>{ if(running || lives <= 0) feedbackEl.textContent=''; }, 800);
+    }
+
+    function handleAnswer(ans){
+      if(!running) return;
+      stopTimer();
+      running = false;
+      const correct = current.convergent ? (ans === 'yes') : (ans === 'no');
+      if(correct){ 
+        score += 1; 
+        feedback('✓', 'good'); 
+        scoreEl.textContent = score;
+        setTimeout(nextRound, 600);
+      }
+      else { 
+        feedback('✗', 'bad'); 
+        lives--;
+        updateLives();
+        if(lives <= 0){
+          setTimeout(handleGameOver, 800); // ← MODIFIÉ
+        } else {
+          setTimeout(nextRound, 800);
+        }
+      }
+    }
+
+    // ===== MODIFIÉ : endGame devient handleGameOver =====
+    async function handleGameOver() {
+      if (!running && lives > 0) return; // Déjà terminé
+      feedback('Game Over — Score: ' + score, 'neutral');
+      running = false;
+      stopTimer();
+      
+      const gameDuration = Date.now() - gameStartTime;
+      const success = await submitScore(score, gameDuration);
+      
+      if (success) {
+        showGameOverScreen(score, gameDuration);
+      } else {
+        alert("Erè anrejistreman skor!");
+        goHome();
+      }
+    }
+
+    function nextRound(){
+      if(lives <= 0) return;
+      current = genRound();
+      renderCurrent();
+      running = true;
+      startTimer();
+      feedbackEl.textContent = '';
+    }
+
+    function startGame(){
+      score = 0; 
+      lives = 3;
+      scoreEl.textContent = score; 
+      updateLives();
+      feedbackEl.textContent='';
+      gameStartTime = Date.now(); // ← NOUVEAU : Démarrer le chrono
+      nextRound();
+    }
+
+    window.addEventListener('keydown', (e)=>{
+      if(e.key === '1' || e.key.toLowerCase()==='o' || e.key.toLowerCase()==='y') handleAnswer('yes');
+      if(e.key === '2' || e.key.toLowerCase()==='n') handleAnswer('no');
+      if(e.key === ' '){ if(!running && lives > 0) startGame(); }
+    });
+
+    yesBtn.addEventListener('click', ()=>handleAnswer('yes'));
+    noBtn.addEventListener('click', ()=>handleAnswer('no'));
+    startBtn.addEventListener('click', ()=>startGame());
+
+    resizeCanvas();
+    updateLives();
+    current = genRound(); 
+    renderCurrent();
+
+  })();
+  </script>
+</body>
+</html>
+        
+       

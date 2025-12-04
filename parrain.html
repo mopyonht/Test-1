@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parrainage Win-Earn</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Particules animées en arrière-plan */
+    .bg-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .particle {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      animation: float 15s infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    /* INTERFACE PARRAIN */
+    .parrain-interface {
+      display: none;
+      width: 100%;
+      max-width: 500px;
+      animation: slideIn 0.6s ease-out;
+    }
+
+    .parrain-interface.active {
+      display: block;
+    }
+
+    .stats-card {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      border-radius: 24px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      color: white;
+      text-align: center;
+      animation: pulse 3s infinite;
+    }
+
+    .stats-card h2 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .points-display {
+      font-size: 64px;
+      font-weight: bold;
+      margin: 20px 0;
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+      animation: bounce 2s infinite;
+    }
+
+    .share-card {
+      background: white;
+      border-radius: 24px;
+      padding: 25px;
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.2);
+      margin-bottom: 20px;
+    }
+
+    .share-card h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+      font-size: 20px;
+    }
+
+    .link-container {
+      background: linear-gradient(135deg, #e0e7ff 0%, #f3e7ff 100%);
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .link-container:hover {
+      transform: scale(1.02);
+    }
+
+    .link-text {
+      flex: 1;
+      font-size: 14px;
+      color: #667eea;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .copy-icon {
+      background: #667eea;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .copy-icon:hover {
+      background: #764ba2;
+      transform: rotate(10deg);
+    }
+
+    .social-share {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .social-btn {
+      padding: 15px;
+      border: none;
+      border-radius: 16px;
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .social-btn:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .whatsapp { background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); }
+    .facebook { background: linear-gradient(135deg, #1877F2 0%, #0d5cbf 100%); }
+    .twitter { background: linear-gradient(135deg, #1DA1F2 0%, #0d8bd9 100%); }
+    .telegram { background: linear-gradient(135deg, #0088cc 0%, #006699 100%); }
+
+    /* INTERFACE FILLEUL */
+    .filleul-interface {
+      display: none;
+      width: 100%;
+      max-width: 500px;
+      animation: slideIn 0.6s ease-out;
+    }
+
+    .filleul-interface.active {
+      display: block;
+    }
+
+    .welcome-card {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      border-radius: 24px;
+      padding: 35px;
+      margin-bottom: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      color: white;
+      text-align: center;
+      animation: zoomIn 0.6s ease-out;
+    }
+
+    .welcome-card h2 {
+      font-size: 26px;
+      margin-bottom: 15px;
+    }
+
+    .welcome-card p {
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .action-card {
+      background: white;
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.2);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .action-card h3 {
+      color: #4facfe;
+      margin-bottom: 20px;
+      font-size: 22px;
+    }
+
+    .step-indicator {
+      display: flex;
+      justify-content: space-around;
+      margin: 25px 0;
+      position: relative;
+    }
+
+    .step-indicator::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 20%;
+      right: 20%;
+      height: 3px;
+      background: #e0e0e0;
+      z-index: 0;
+    }
+
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+    }
+
+    .step-number.completed {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+
+    .step-label {
+      font-size: 12px;
+      color: #666;
+      font-weight: 600;
+    }
+
+    .share-btn-big {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+      border: none;
+      padding: 18px 40px;
+      border-radius: 50px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(245, 87, 108, 0.4);
+      transition: all 0.3s ease;
+      margin: 20px 0;
+    }
+
+    .share-btn-big:hover:not(:disabled) {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 40px rgba(245, 87, 108, 0.6);
+    }
+
+    .share-btn-big:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .timer-display {
+      font-size: 48px;
+      font-weight: bold;
+      color: #f5576c;
+      margin: 15px 0;
+      animation: pulse 1s infinite;
+    }
+
+    .become-parrain-card {
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.2);
+      color: white;
+      text-align: center;
+      animation: shimmer 3s infinite;
+    }
+
+    .become-parrain-card h3 {
+      font-size: 24px;
+      margin-bottom: 15px;
+    }
+
+    .become-parrain-btn {
+      background: white;
+      color: #fa709a;
+      border: none;
+      padding: 15px 35px;
+      border-radius: 50px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      margin-top: 15px;
+    }
+
+    .become-parrain-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .success-message {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 16px;
+      margin: 20px 0;
+      text-align: center;
+      font-weight: 600;
+      box-shadow: 0 5px 20px rgba(56, 239, 125, 0.4);
+      animation: zoomIn 0.5s ease-out;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 24px;
+      padding: 30px;
+      max-width: 400px;
+      width: 90%;
+      animation: scaleIn 0.3s ease-out;
+    }
+
+    .modal-content h3 {
+      color: #667eea;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .close-modal {
+      background: #e0e0e0;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 20px;
+      width: 100%;
+      font-weight: 600;
+    }
+
+    /* Animations */
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes zoomIn {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes scaleIn {
+      from {
+        transform: scale(0.7);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* Media Query Desktop */
+    @media (min-width: 768px) {
+      .container {
+        padding: 40px;
+      }
+
+      .parrain-interface,
+      .filleul-interface {
+        max-width: 600px;
+      }
+
+      .stats-card {
+        padding: 40px;
+      }
+
+      .points-display {
+        font-size: 80px;
+      }
+
+      .social-share {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .action-card {
+        padding: 40px;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .container {
+        max-width: 1200px;
+      }
+
+      .parrain-interface,
+      .filleul-interface {
+        max-width: 700px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Animation de fond -->
+  <div class="bg-animation" id="bgAnimation"></div>
+
+  <div class="container">
+    <!-- INTERFACE PARRAIN -->
+    <div class="parrain-interface" id="parrainInterface">
+      <div class="stats-card">
+        <h2>👋 Bonjour, <span id="usernameDisplay">Utilisateur</span></h2>
+        <div class="points-display" id="pointsDisplay">0</div>
+        <p style="font-size: 18px;">Points accumulés</p>
+      </div>
+
+      <div class="share-card">
+        <h3>🎁 Partagez votre lien de parrainage</h3>
+        <div class="link-container" onclick="copyLink()">
+          <div class="link-text" id="referralLink">Chargement...</div>
+          <div class="copy-icon">📋</div>
+        </div>
+        
+        <p style="color: #666; margin-bottom: 15px;">Ou partagez directement sur :</p>
+        <div class="social-share">
+          <button class="social-btn whatsapp" onclick="shareOn('whatsapp')">
+            <span style="font-size: 24px;">📱</span>
+            WhatsApp
+          </button>
+          <button class="social-btn facebook" onclick="shareOn('facebook')">
+            <span style="font-size: 24px;">📘</span>
+            Facebook
+          </button>
+          <button class="social-btn twitter" onclick="shareOn('twitter')">
+            <span style="font-size: 24px;">🐦</span>
+            Twitter
+          </button>
+          <button class="social-btn telegram" onclick="shareOn('telegram')">
+            <span style="font-size: 24px;">✈️</span>
+            Telegram
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTERFACE FILLEUL -->
+    <div class="filleul-interface" id="filleulInterface">
+      <div class="welcome-card">
+        <h2>🎉 Bienvenue !</h2>
+        <p>Vous avez été invité par <strong><span id="parrainName">un ami</span></strong></p>
+        <p style="margin-top: 10px; font-size: 14px;">Partagez ce site pour valider votre participation</p>
+      </div>
+
+      <div class="action-card">
+        <h3>Validez votre participation</h3>
+        
+        <div class="step-indicator">
+          <div class="step">
+            <div class="step-number" id="step1">1</div>
+            <div class="step-label">Cliquer</div>
+          </div>
+          <div class="step">
+            <div class="step-number" id="step2">2</div>
+            <div class="step-label">Partager</div>
+          </div>
+          <div class="step">
+            <div class="step-number" id="step3">3</div>
+            <div class="step-label">Valider</div>
+          </div>
+        </div>
+
+        <div id="shareSection">
+          <button class="share-btn-big" id="shareButtonFilleul" onclick="startShareProcess()">
+            🚀 Partager maintenant
+          </button>
+          <div class="social-share" id="filleulSocialShare" style="display: none;">
+            <button class="social-btn whatsapp" onclick="shareFilleul('whatsapp')">
+              <span style="font-size: 24px;">📱</span>
+              WhatsApp
+            </button>
+            <button class="social-btn facebook" onclick="shareFilleul('facebook')">
+              <span style="font-size: 24px;">📘</span>
+              Facebook
+            </button>
+            <button class="social-btn twitter" onclick="shareFilleul('twitter')">
+              <span style="font-size: 24px;">🐦</span>
+              Twitter
+            </button>
+            <button class="social-btn telegram" onclick="shareFilleul('telegram')">
+              <span style="font-size: 24px;">✈️</span>
+              Telegram
+            </button>
+          </div>
+        </div>
+
+        <div id="timerSection" style="display: none;">
+          <p style="color: #666; margin-top: 20px;">Temps restant pour valider :</p>
+          <div class="timer-display" id="timerDisplay">30</div>
+          <p style="color: #999; font-size: 14px;">Restez sur cette page...</p>
+        </div>
+
+        <div id="successSection" style="display: none;">
+          <div class="success-message">
+            ✅ Point validé ! Merci d'avoir partagé.
+          </div>
+        </div>
+      </div>
+
+      <div class="become-parrain-card" id="becomeParrainCard">
+        <h3>💎 Devenez parrain vous aussi !</h3>
+        <p>Connectez-vous pour obtenir votre propre lien et gagner des points</p>
+        <button class="become-parrain-btn" onclick="becomeParrain()">
+          Je veux devenir parrain
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de partage -->
+  <div class="modal" id="shareModal">
+    <div class="modal-content">
+      <h3>📤 Choisissez où partager</h3>
+      <div class="social-share">
+        <button class="social-btn whatsapp" onclick="shareFromModal('whatsapp')">
+          <span style="font-size: 24px;">📱</span>
+          WhatsApp
+        </button>
+        <button class="social-btn facebook" onclick="shareFromModal('facebook')">
+          <span style="font-size: 24px;">📘</span>
+          Facebook
+        </button>
+        <button class="social-btn twitter" onclick="shareFromModal('twitter')">
+          <span style="font-size: 24px;">🐦</span>
+          Twitter
+        </button>
+        <button class="social-btn telegram" onclick="shareFromModal('telegram')">
+          <span style="font-size: 24px;">✈️</span>
+          Telegram
+        </button>
+      </div>
+      <button class="close-modal" onclick="closeModal()">Fermer</button>
+    </div>
+  </div>
+
+  <script>
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDpylenTapoLXwbMsEavlLt0po5M_bVDBo",
+      authDomain: "mopyonsiteweb.firebaseapp.com",
+      databaseURL: "https://mopyonsiteweb-default-rtdb.firebaseio.com/",
+      projectId: "mopyonsiteweb",
+      storageBucket: "mopyonsiteweb.firebasestorage.app",
+      messagingSenderId: "535172052074",
+      appId: "1:535172052074:web:c30cefea18ffed7a27c613",
+      measurementId: "G-CLYT5CXJ79"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let shareTimer = null;
+    let currentReferrerId = null;
+
+    // Créer des particules animées
+    function createParticles() {
+      const container = document.getElementById('bgAnimation');
+      for (let i = 0; i < 15; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        const size = Math.random() * 60 + 20;
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 15 + 's';
+        particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+        container.appendChild(particle);
+      }
+    }
+
+    createParticles();
+
+    // Récupérer l'ID du parrain depuis l'URL
+    function getReferrerIdFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('ref');
+    }
+
+    // Copier le lien
+    function copyLink() {
+      const link = document.getElementById('referralLink').textContent;
+      navigator.clipboard.writeText(link).then(() => {
+        alert('✅ Lien copié !');
+      });
+    }
+
+    // Partage pour le parrain
+    function shareOn(platform) {
+      const link = document.getElementById('referralLink').textContent;
+      const text = "Rejoignez-moi sur Win-Earn et gagnez des points ! 🎉";
+      let url = '';
+
+      switch(platform) {
+        case 'whatsapp':
+          url = `https://wa.me/?text=${encodeURIComponent(text + ' ' + link)}`;
+          break;
+        case 'facebook':
+          url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`;
+          break;
+        case 'twitter':
+          url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(link)}`;
+          break;
+        case 'telegram':
+          url = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`;
+          break;
+      }
+
+      window.open(url, '_blank', 'width=600,height=400');
+    }
+
+    // Démarrer le processus de partage pour le filleul
+    function startShareProcess() {
+      document.getElementById('step1').classList.add('completed');
+      document.getElementById('shareButtonFilleul').style.display = 'none';
+      document.getElementById('filleulSocialShare').style.display = 'grid';
+    }
+
+    // Partage pour le filleul
+    function shareFilleul(platform) {
+      const referrerId = getReferrerIdFromURL();
+      const link = `${window.location.origin}${window.location.pathname}?ref=${referrerId}`;
+      const text = "Rejoignez-moi sur Win-Earn et gagnez des points ! 🎉";
+      let url = '';
+
+      switch(platform) {
+        case 'whatsapp':
+          url = `https://wa.me/?text=${encodeURIComponent(text + ' ' + link)}`;
+          break;
+        case 'facebook':
+          url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`;
+          break;
+        case 'twitter':
+          url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(link)}`;
+          break;
+        case 'telegram':
+          url = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`;
+          break;
+      }
+
+      window.open(url, '_blank', 'width=600,height=400');
+      startTimer();
+    }
+
+    // Démarrer le timer de 30 secondes
+    function startTimer() {
+      document.getElementById('step2').classList.add('completed');
+      document.getElementById('filleulSocialShare').style.display = 'none';
+      document.getElementById('timerSection').style.display = 'block';
+
+      let timeLeft = 30;
+      const timerDisplay = document.getElementById('timerDisplay');
+
+      shareTimer = setInterval(() => {
+        timeLeft--;
+        timerDisplay.textContent = timeLeft;
+
+        if (timeLeft <= 0) {
+          clearInterval(shareTimer);
+          validateShare();
+        }
+      }, 1000);
+    }
+
+    // Valider le partage et donner le point
+    async function validateShare() {
+      document.getElementById('step3').classList.add('completed');
+      document.getElementById('timerSection').style.display = 'none';
+      document.getElementById('successSection').style.display = 'block';
+
+      const referrerId = getReferrerIdFromURL();
+      if (referrerId) {
+        try {
+          const referrerRef = db.collection('users').doc(referrerId);
+          await referrerRef.update({
+            points: firebase.firestore.FieldValue.increment(1)
+          });
+        } catch (error) {
+          console.error("Erreur lors de l'attribution du point:", error);
+        }
+      }
+
+      setTimeout(() => {
+        document.getElementById('becomeParrainCard').style.animation = 'pulse 1s ease-out';
+      }, 2000);
+    }
+
+    // Devenir parrain
+    function becomeParrain() {
+      alert("Connectez-vous au système principal pour devenir parrain et obtenir votre lien de parrainage !");
+      // Ici vous pouvez rediriger vers votre système d'authentification
+    }
+
+    // Modal
+    function closeModal() {
+      document.getElementById('shareModal').classList.remove('active');
+    }
+
+    // Gestion de l'authentification
+    auth.onAuthStateChanged(async user => {
+      const referrerId = getReferrerIdFromURL();
+
+      if (user) {
+        // Utilisateur connecté = PARRAIN
+        document.getElementById('parrainInterface').classList.add('active');
+        document.getElementById('filleulInterface').classList.remove('active');
+
+        const userDoc = await db.collection('users').doc(user.uid).get();
+        let userData = userDoc.data();
+
+        if (!userData) {
+          await db.collection('users').doc(user.uid).set({
+            username: user.displayName || "Utilisateur",
+            points: 0,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          userData = { username: user.displayName || "Utilisateur", points: 0 };
+        }
+
+        document.getElementById('usernameDisplay').textContent = userData.username;
+        document.getElementById('pointsDisplay').textContent = userData.points || 0;
+        document.getElementById('referralLink').textContent = 
+          `${window.location.origin}${window.location.pathname}?ref=${user.uid}`;
+
+        // Écouter les changements de points en temps réel
+        db.collection('users').doc(user.uid).onSnapshot(doc => {
+          const data = doc.data();
+          if (data) {
+            document.getElementById('pointsDisplay').textContent = data.points || 0;
+          }
+        });
+
+      } else if (referrerId) {
+        // Pas connecté mais a un lien de parrainage = FILLEUL
+        document.getElementById('parrainInterface').classList.remove('active');
+        document.getElementById('filleulInterface').classList.add('active');
+
+        // Récupérer le nom du parrain
+        try {
+          const parrainDoc = await db.collection('users').doc(referrerId).get();
+          if (parrainDoc.exists) {
+            const parrainData = parrainDoc.data();
+            document.getElementById('parrainName').textContent = parrainData.username || "un ami";
+          }
+        } catch (error) {
+          console.error("Erreur lors de la récupération du parrain:", error);
+        }
+
+      } else {
+        // Pas connecté et pas de lien = afficher l'interface parrain par défaut
+        document.getElementById('parrainInterface').classList.add('active');
+        document.getElementById('filleulInterface').classList.remove('active');
+        
+        // Message pour se connecter
+        document.getElementById('usernameDisplay').textContent = "Invité";
+        document.getElementById('pointsDisplay').textContent = "0";
+        document.getElementById('referralLink').textContent = "Connectez-vous pour obtenir votre lien";
+      }
+    });
+
+    // Partage depuis modal
+    function shareFromModal(platform) {
+      closeModal();
+      shareOn(platform);
+    }
+  </script>
+</body>
+</html>

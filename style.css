@@ -1,0 +1,878 @@
+ * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Sergi Trendy', Arial, sans-serif;
+      background: linear-gradient(135deg, red, blue);
+      color: white;
+      min-height: 100vh;
+      text-align: center;
+    }
+    
+    body.loading #page3 {
+  display: none !important;
+}
+
+    .hidden { display: none !important; }
+
+    .button {
+      background-color: #e60023;
+      color: white;
+      border: none;
+      padding: 15px 40px;
+      font-size: 22px;
+      font-style: italic;
+      font-weight: bold;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: background 0.3s;
+      text-decoration: none;
+      margin: 10px;
+    }
+
+    .button:hover { background-color: #c4001d; }
+
+
+    
+    /* PAGE 3 - PAGE PRINCIPALE */
+#page3 {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+
+#page3 header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  flex-shrink: 0;
+}
+
+.nav-button {
+  background-color: transparent;
+  color: white;
+  border: 2px solid white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.logo {
+  font-family: 'Sergi Trendy', Arial, sans-serif;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+#page3 main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+#page3 .button {
+  background-color: white;
+  color: red;
+  font-weight: bold;
+  border: none;
+  padding: 15px 30px;
+  margin: 15px;
+  border-radius: 10px;
+  font-size: 18px;
+  cursor: pointer;
+  width: 220px;
+}
+
+#page3 .button:hover {
+  background-color: #ffe6e6;
+}
+
+#page3 footer {
+  background-color: white;
+  color: black;
+  text-align: center;
+  padding: 20px;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+    /* PROFILE PAGE */
+    #profilePage {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(135deg, red, blue);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #profilePage header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+    }
+
+    #profilePage main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      padding-bottom: 80px;
+      overflow-y: auto;
+      min-height: 0;
+    }
+
+    .money-container {
+      background-color: white;
+      color: red;
+      padding: 20px 30px;
+      border-radius: 15px;
+      font-size: 24px;
+      font-weight: bold;
+      margin: 20px 0;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .money-amount {
+      font-size: 28px;
+    }
+
+    .add-money-btn {
+      background-color: #e60023;
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.3s;
+    }
+
+    .add-money-btn:hover {
+      background-color: #c4001d;
+    }
+
+    .player-info {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .player-name {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .player-elo {
+      font-size: 18px;
+      color: #ffeb3b;
+    }
+
+    .tabs-container {
+      width: 100%;
+      max-width: 400px;
+      margin: 30px 0;
+    }
+
+    .tabs {
+      display: flex;
+      background-color: white;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 15px;
+      background-color: white;
+      color: red;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .tab.active {
+      background-color: #e60023;
+      color: white;
+    }
+
+    .tab:hover:not(.active) {
+      background-color: #ffe6e6;
+    }
+
+    .tab-content {
+      background-color: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 10px;
+      min-height: 200px;
+      color: white;
+    }
+
+    .tab-content.hidden {
+      display: none;
+    }
+
+    #profilePage footer {
+      background-color: white;
+      color: black;
+      text-align: center;
+      padding: 20px;
+      position: relative;
+      margin-top: auto;
+      bottom: 0;
+      z-index: 10;
+  width: 100%;
+    }
+
+    /* TRAINING PAGE */
+    #trainingPage {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(135deg, red, blue);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #trainingPage header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+    }
+
+    #trainingPage .logo {
+      font-family: 'Sergi Trendy', Arial, sans-serif;
+      font-size: 24px;
+      font-weight: bold;
+      color: white;
+    }
+
+    #trainingPage main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 30px;
+    }
+
+    #trainingPage .button {
+      background-color: white;
+      color: red;
+      font-weight: bold;
+      border: none;
+      padding: 15px 30px;
+      margin: 15px;
+      border-radius: 10px;
+      font-size: 18px;
+      cursor: pointer;
+      width: 220px;
+    }
+
+    #trainingPage .button:hover {
+      background-color: #ffe6e6;
+    }
+
+    #trainingPage footer {
+      background-color: white;
+      color: black;
+      text-align: center;
+      padding: 20px;
+    }
+
+    /* GAME PAGES */
+    .game-page {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background-color: #333 !important;
+      color: white !important;
+      z-index: 2000 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+    }
+
+    .game-page.hidden {
+      display: none !important;
+    }
+
+    .game-page * {
+      z-index: 2001 !important;
+    }
+
+    .game-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, red, blue);
+    }
+
+    .game-header .logo {
+      font-family: 'Sergi Trendy', Arial, sans-serif;
+      font-size: 28px;
+      font-weight: bold;
+      margin: 0 auto;
+    }
+
+    .game-info {
+      display: flex;
+      justify-content: space-between;
+      width: 90%;
+      max-width: 500px;
+      margin: 10px auto;
+    }
+
+    .player-info-game {
+      text-align: center;
+    }
+
+    .game-timer {
+      font-size: 28px;
+      font-weight: bold;
+      margin-top: 5px;
+    }
+
+    .game-board {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(15, 1fr);
+      grid-template-rows: repeat(15, 1fr);
+      gap: 2px;
+      width: 90vmin;
+      height: 90vmin;
+      margin-top: 10px;
+    }
+
+    .game-cell {
+      background-color: #222;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4vmin;
+      font-weight: bold;
+      border: 1px solid #666;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    .game-strike-line {
+      position: absolute;
+      height: 4px;
+      background-color: yellow;
+      z-index: 10;
+      transform-origin: left center;
+    }
+
+    .game-countdown {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 10vmin;
+      font-weight: bold;
+      color: yellow;
+      z-index: 2000;
+      display: none;
+    }
+
+    .simple-profile {
+      background-color: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .simple-profile h3 {
+      color: white;
+      margin-bottom: 30px;
+    }
+
+    /* LEARN AND ABOUT PAGES */
+    .info-page {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(135deg, red, blue);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .info-page header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      flex-shrink: 0;
+    }
+
+    .info-page .logo {
+      font-family: 'Sergi Trendy', Arial, sans-serif;
+      font-size: 24px;
+      font-weight: bold;
+      color: white;
+    }
+
+    .info-page main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      color: white;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .info-content {
+      background-color: rgba(255,255,255,0.1);
+      padding: 30px;
+      border-radius: 15px;
+      margin: 20px 0;
+      line-height: 1.6;
+      font-size: 18px;
+    }
+
+    .info-content h2 {
+      color: #ffeb3b;
+      font-size: 24px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .info-content h3 {
+      color: #ffeb3b;
+      font-size: 20px;
+      margin: 20px 0 10px 0;
+    }
+
+    .info-content p {
+      margin-bottom: 15px;
+    }
+
+    .youtube-link {
+      display: inline-block;
+      background-color: #ff0000;
+      color: white;
+      padding: 12px 25px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      margin: 20px 0;
+      transition: background-color 0.3s;
+    }
+
+    .youtube-link:hover {
+      background-color: #cc0000;
+    }
+
+    .info-page footer {
+      background-color: white;
+      color: black;
+      text-align: center;
+      padding: 20px;
+      flex-shrink: 0;
+    }
+
+    .menu-modal, .alert-modal, .login-modal, .register-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .menu-content, .alert-content, .login-content, .register-content {
+      background-color: white;
+      color: red;
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      min-width: 260px;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: red;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #e60023;
+    }
+
+    .form-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: red;
+      margin-bottom: 25px;
+    }
+
+    .form-link {
+      color: #e60023;
+      text-decoration: none;
+      font-size: 14px;
+      margin: 10px 0;
+      cursor: pointer;
+    }
+
+    .form-link:hover {
+      text-decoration: underline;
+    }
+
+    .form-button {
+      background-color: #e60023;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 10px 0;
+      transition: background-color 0.3s;
+    }
+
+    .form-button:hover {
+      background-color: #c4001d;
+    }
+
+    .menu-content .button, .alert-content .button {
+      color: red;
+      margin: 10px 0;
+      width: 100%;
+      border-top: 1px solid #ddd;
+      border-bottom: 1px solid #ddd;
+      border-radius: 0;
+    }
+
+    .close-button {
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin-top: 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    
+    /* STYLES POUR LE SYSTÈME D'ABONNEMENT */
+
+/* Modal d'abonnement */
+.subscription-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.subscription-content {
+  background-color: white;
+  color: red;
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  min-width: 320px;
+  max-width: 450px;
+  display: flex;
+  flex-direction: column;
+}
+
+.subscription-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: red;
+  margin-bottom: 20px;
+}
+
+.subscription-price {
+  font-size: 32px;
+  font-weight: bold;
+  color: #e60023;
+  margin: 15px 0;
+}
+
+.subscription-benefits {
+  text-align: left;
+  margin: 20px 0;
+  color: #333;
+}
+
+.subscription-benefits li {
+  margin: 8px 0;
+  list-style: none;
+  position: relative;
+  padding-left: 20px;
+}
+
+.subscription-benefits li:before {
+  content: "✓";
+  color: #22c55e;
+  font-weight: bold;
+  position: absolute;
+  left: 0;
+}
+
+/* Statut d'abonnement dans le profil */
+.subscription-status {
+  background-color: white;
+  color: red;
+  padding: 20px;
+  border-radius: 15px;
+  margin: 20px 0;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.subscription-active {
+  background: linear-gradient(45deg, #22c55e, #16a34a);
+  color: white;
+}
+
+.subscription-expired {
+  background: linear-gradient(45deg, #e60023, #c4001d);
+  color: white;
+}
+
+.countdown-display {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.days-left {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ffeb3b;
+}
+
+.renew-button {
+  background-color: #e60023;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: background-color 0.3s;
+}
+
+.renew-button:hover {
+  background-color: #c4001d;
+}
+
+
+
+@media (max-width: 768px) {
+    #page3 footer,
+    #info-page footer,
+    #trainingPage footer,
+    #profilePage footer {
+        position: relative;
+        margin-top: 5px;
+        padding: 0px;
+        font-size: 10px;
+    }
+}
+
+.free-trial {
+  background: linear-gradient(45deg, #22c55e, #16a34a);
+  color: white;
+}
+
+.trial-expired {
+  background: linear-gradient(45deg, #f59e0b, #d97706);
+  color: white;
+}
+
+.attention-btn {
+  margin-top: 80px;
+  background: linear-gradient(45deg, #ff6a00, #ffcc00);
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 14px 26px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 6px 15px rgba(255, 140, 0, 0.4);
+  animation: floatUpDown 1.4s infinite ease-in-out,
+             blink 1.4s infinite alternate;
+  transition: transform 0.2s;
+}
+
+.attention-btn:hover {
+  transform: scale(1.06);
+}
+
+/* Animation montée / descente */
+@keyframes floatUpDown {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-8px); }
+  100% { transform: translateY(0); }
+}
+
+/* Clignotement doux */
+@keyframes blink {
+  0%   { opacity: 1; }
+  50%  { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* --- MODAL FULLSCREEN --- */
+.promo-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+}
+
+.promo-modal-content {
+  position: relative;
+  background: #ffffff;
+  padding: 30px;
+  width: 90%;
+  max-width: 450px;
+  border-radius: 18px;
+  position: relative;
+  text-align: center;
+  box-shadow: 0 0 25px rgba(255,180,0,0.6);
+}
+
+/* TEXTE QUI CLIGNOTE */
+.promo-blink {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #ff6600;
+  animation: blinkText 1.2s infinite alternate;
+}
+
+@keyframes blinkText {
+  0%   { opacity: 1; }
+  50%  { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* BOUTONS */
+.share-btn,
+.play-btn {
+  width: 100%;
+  padding: 14px;
+  margin-top: 18px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Bouton partager */
+.share-btn {
+  background: #ff9900;
+  color: #fff;
+}
+
+/* Bouton jouer désactivé */
+.play-btn:disabled {
+  background: #cccccc;
+  color: #666;
+  cursor: not-allowed;
+}
+
+/* Bouton jouer activé */
+.play-btn.enabled {
+  background: #28a745;
+  color: white;
+  cursor: pointer;
+}
+
+
+.back-btn-top {
+  position: absolute;
+  top: 12px;
+  left: 15px;
+  background: #eee;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(0,0,0,0.2);
+}
+
+.back-btn-top:hover {
+  background: #ddd;
+}
+
+.parennaj-btn {
+  margin-top: 70px; /* optionnel */
+}
