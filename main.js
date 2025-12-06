@@ -325,7 +325,7 @@ auth.onAuthStateChanged(async function(user) {
 
 
     function showDepositWithdraw() {
-  window.location.href = "anons.html";
+  window.location.href = "ezipay-paiement.html";
 }
 
     function toggleMenu(show) {
