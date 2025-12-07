@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parrainage Win-Earn</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .bg-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .particle {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      animation: float 15s infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .parrain-interface {
+      width: 100%;
+      max-width: 500px;
+      animation: slideIn 0.6s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .stats-card {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      border-radius: 24px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      color: white;
+      text-align: center;
+      animation: pulse 3s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+
+    .stats-card h2 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .points-display {
+      font-size: 64px;
+      font-weight: bold;
+      margin: 20px 0;
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .contest-banner {
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      padding: 25px;
+      border-radius: 24px;
+      text-align: center;
+      margin-bottom: 20px;
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.2);
+    }
+
+    .contest-banner h3 {
+      color: #d63031;
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .contest-banner p {
+      color: #2d3436;
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .contest-banner .subtitle {
+      color: #636e72;
+      font-size: 14px;
+    }
+
+    .share-card {
+      background: white;
+      border-radius: 24px;
+      padding: 25px;
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.2);
+      margin-bottom: 20px;
+    }
+
+    .share-card h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+      font-size: 20px;
+    }
+
+    .info-text {
+      color: #666;
+      margin-bottom: 15px;
+      font-size: 14px;
+      text-align: center;
+      font-weight: 600;
+      background: linear-gradient(135deg, #e0e7ff 0%, #f3e7ff 100%);
+      padding: 12px;
+      border-radius: 12px;
+    }
+
+    .link-container {
+      background: linear-gradient(135deg, #e0e7ff 0%, #f3e7ff 100%);
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .link-container:hover {
+      transform: scale(1.02);
+    }
+
+    .link-text {
+      flex: 1;
+      font-size: 14px;
+      color: #667eea;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .copy-icon {
+      background: #667eea;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .copy-icon:hover {
+      background: #764ba2;
+      transform: rotate(10deg);
+    }
+
+    .social-share {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .social-btn {
+      padding: 15px;
+      border: none;
+      border-radius: 16px;
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .social-btn:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .whatsapp { background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); }
+    .facebook { background: linear-gradient(135deg, #1877F2 0%, #0d5cbf 100%); }
+    .twitter { background: linear-gradient(135deg, #1DA1F2 0%, #0d8bd9 100%); }
+    .telegram { background: linear-gradient(135deg, #0088cc 0%, #006699 100%); }
+
+    .success-message {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 16px;
+      margin: 20px 0;
+      text-align: center;
+      font-weight: 600;
+      box-shadow: 0 5px 20px rgba(56, 239, 125, 0.4);
+      animation: zoomIn 0.5s ease-out;
+    }
+
+    @keyframes zoomIn {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @media (min-width: 768px) {
+      .container {
+        padding: 40px;
+      }
+
+      .parrain-interface {
+        max-width: 600px;
+      }
+
+      .stats-card {
+        padding: 40px;
+      }
+
+      .points-display {
+        font-size: 80px;
+      }
+
+      .social-share {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    @media (min-width: 1024px) {
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .container {
+        max-width: 1200px;
+      }
+
+      .parrain-interface {
+        max-width: 700px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-animation" id="bgAnimation"></div>
+
+  <div class="container">
+    <div class="parrain-interface" id="parrainInterface">
+      <div class="stats-card">
+        <h2>👋 Bonjour, <span id="usernameDisplay">Utilisateur</span></h2>
+        <div class="points-display" id="pointsDisplay">0</div>
+        <p style="font-size: 18px;">Points accumulés</p>
+      </div>
+
+      <div class="contest-banner">
+        <h3>🏆 Concours en cours !</h3>
+        <p>Résultats publiés le 30 décembre 2025</p>
+        <p class="subtitle">Partagez votre lien pour gagner des points !</p>
+      </div>
+
+      <div class="share-card">
+        <h3>🎁 Partagez votre lien de parrainage</h3>
+        <div class="info-text">
+          ✨ Chaque partage = 1 point automatique !
+        </div>
+        <div class="link-container" onclick="copyLink()">
+          <div class="link-text" id="referralLink">Chargement...</div>
+          <div class="copy-icon">📋</div>
+        </div>
+        
+        <p style="color: #666; margin-bottom: 15px; text-align: center;">Partagez sur :</p>
+        <div class="social-share">
+          <button class="social-btn whatsapp" onclick="shareOn('whatsapp')">
+            <span style="font-size: 24px;">📱</span>
+            WhatsApp
+          </button>
+          <button class="social-btn facebook" onclick="shareOn('facebook')">
+            <span style="font-size: 24px;">📘</span>
+            Facebook
+          </button>
+          <button class="social-btn twitter" onclick="shareOn('twitter')">
+            <span style="font-size: 24px;">🐦</span>
+            Twitter
+          </button>
+          <button class="social-btn telegram" onclick="shareOn('telegram')">
+            <span style="font-size: 24px;">✈️</span>
+            Telegram
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDpylenTapoLXwbMsEavlLt0po5M_bVDBo",
+      authDomain: "mopyonsiteweb.firebaseapp.com",
+      databaseURL: "https://mopyonsiteweb-default-rtdb.firebaseio.com/",
+      projectId: "mopyonsiteweb",
+      storageBucket: "mopyonsiteweb.firebasestorage.app",
+      messagingSenderId: "535172052074",
+      appId: "1:535172052074:web:c30cefea18ffed7a27c613",
+      measurementId: "G-CLYT5CXJ79"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Créer des particules animées
+    function createParticles() {
+      const container = document.getElementById('bgAnimation');
+      for (let i = 0; i < 15; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        const size = Math.random() * 60 + 20;
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 15 + 's';
+        particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+        container.appendChild(particle);
+      }
+    }
+
+    createParticles();
+
+    // Copier le lien
+    function copyLink() {
+      const link = document.getElementById('referralLink').textContent;
+      if (link === "Connectez-vous pour obtenir votre lien") {
+        alert('⚠️ Veuillez vous connecter d\'abord');
+        return;
+      }
+      navigator.clipboard.writeText(link).then(() => {
+        showNotification('✅ Lien copié !');
+      });
+    }
+
+    // Afficher une notification temporaire
+    function showNotification(message) {
+      const tempMsg = document.createElement('div');
+      tempMsg.className = 'success-message';
+      tempMsg.textContent = message;
+      tempMsg.style.position = 'fixed';
+      tempMsg.style.top = '20px';
+      tempMsg.style.left = '50%';
+      tempMsg.style.transform = 'translateX(-50%)';
+      tempMsg.style.zIndex = '9999';
+      document.body.appendChild(tempMsg);
+      
+      setTimeout(() => {
+        tempMsg.remove();
+      }, 3000);
+    }
+
+    // Partage - donne automatiquement 1 point
+    async function shareOn(platform) {
+      const link = document.getElementById('referralLink').textContent;
+      
+      if (link === "Connectez-vous pour obtenir votre lien") {
+        alert('⚠️ Veuillez vous connecter d\'abord');
+        return;
+      }
+
+      const text = "Vin fè lajan pandan wap jwe jwèt ki baze sou konpetans ! 🎉";
+      let url = '';
+
+      switch(platform) {
+        case 'whatsapp':
+          url = `https://wa.me/?text=${encodeURIComponent(text + ' ' + link)}`;
+          break;
+        case 'facebook':
+          url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`;
+          break;
+        case 'twitter':
+          url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(link)}`;
+          break;
+        case 'telegram':
+          url = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`;
+          break;
+      }
+
+      // Ouvrir la fenêtre de partage
+      window.open(url, '_blank', 'width=600,height=400');
+
+      // Attribuer le point immédiatement
+      const user = auth.currentUser;
+      if (user) {
+        try {
+          const userRef = db.collection('users').doc(user.uid);
+          await userRef.update({
+            points: firebase.firestore.FieldValue.increment(1),
+            lastShareDate: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          
+          // Animation de confirmation
+          const pointsDisplay = document.getElementById('pointsDisplay');
+          pointsDisplay.style.animation = 'none';
+          setTimeout(() => {
+            pointsDisplay.style.animation = 'bounce 2s infinite';
+          }, 10);
+          
+          showNotification('✅ +1 point ajouté !');
+        } catch (error) {
+          console.error("Erreur lors de l'attribution du point:", error);
+          showNotification('❌ Erreur lors de l\'ajout du point');
+        }
+      }
+    }
+
+    // Gestion de l'authentification
+    auth.onAuthStateChanged(async user => {
+      if (user) {
+        // Utilisateur connecté
+        const userDoc = await db.collection('users').doc(user.uid).get();
+        let userData = userDoc.data();
+
+        if (!userData) {
+          await db.collection('users').doc(user.uid).set({
+            username: user.displayName || "Utilisateur",
+            points: 0,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          userData = { username: user.displayName || "Utilisateur", points: 0 };
+        }
+
+        document.getElementById('usernameDisplay').textContent = userData.username;
+        document.getElementById('pointsDisplay').textContent = userData.points || 0;
+        document.getElementById('referralLink').textContent = 
+          `chanpyon509.com`;
+
+        // Écouter les changements de points en temps réel
+        db.collection('users').doc(user.uid).onSnapshot(doc => {
+          const data = doc.data();
+          if (data) {
+            document.getElementById('pointsDisplay').textContent = data.points || 0;
+          }
+        });
+
+      } else {
+        // Pas connecté
+        document.getElementById('usernameDisplay').textContent = "Invité";
+        document.getElementById('pointsDisplay').textContent = "0";
+        document.getElementById('referralLink').textContent = "Connectez-vous pour obtenir votre lien";
+      }
+    });
+  </script>
+</body>
+</html>
