@@ -305,10 +305,6 @@ async function joinJackpot(tournamentId, entryFee) {
       });
     }
     
-    // Mettre à jour les stats générales du joueur
-    await db.collection('users').doc(currentUser.uid).update({
-      pati: firebase.firestore.FieldValue.increment(1)
-    });
     
     // Incrémenter totalPot
     await db.collection('tournaments').doc(tournamentId).update({
