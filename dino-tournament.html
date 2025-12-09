@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>🦖 Dino - Tounwa</title>
+  <style>
+    :root{ --bg:#f7f7f7; --ground:#7a7a7a; --dino:#222 }
+    html,body{height:100%;margin:0;background:var(--bg);font-family:system-ui,Segoe UI,Roboto,Arial}
+    .game-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px 20px 120px 20px;box-sizing:border-box;gap:20px}
+    
+    /* Infos tournoi en haut */
+    .tournament-info-bar{width:800px;max-width:95vw;background:#fff;border-radius:8px;padding:15px;box-shadow:0 2px 8px rgba(0,0,0,0.1);margin-bottom:10px}
+    .tournament-info-bar h3{margin:0 0 10px 0;font-size:16px;color:#333}
+    .tournament-stats{display:flex;gap:20px;flex-wrap:wrap;font-size:14px}
+    .tournament-stats .stat{display:flex;flex-direction:column}
+    .tournament-stats .stat-label{color:#666;font-size:12px}
+    .tournament-stats .stat-value{font-weight:700;color:#059669;font-size:16px}
+    
+    .stage{position:relative;width:800px;max-width:95vw;height:250px;background:linear-gradient(#f7f7f7,#f1f1f1);overflow:hidden;border:1px solid #ddd;box-shadow:0 8px 30px rgba(0,0,0,0.06);border-radius:6px}
+    canvas{display:block;width:100%;height:100%;}
+    .ui{position:absolute;left:12px;top:12px;font-weight:700;color:#555;font-size:14px}
+    .score{position:absolute;right:12px;top:12px;font-weight:700;color:#555;font-size:18px}
+    .controls{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:12px;align-items:center}
+    .btn{appearance:none;border:0;background:#111;color:#fff;padding:10px 18px;border-radius:6px;font-weight:700;box-shadow:0 6px 12px rgba(0,0,0,0.15);cursor:pointer;user-select:none;touch-action:manipulation}
+    #jumpBtn{padding:20px 60px;font-size:18px;font-weight:800}
+    .btn:active{transform:translateY(1px)}
+    .hint{color:#888;font-size:12px;text-align:center}
+    .abandon-btn{background:#dc2626;padding:12px 24px;font-size:14px}
+    
+    /* Modal Game Over */
+    .game-over-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:10000;align-items:center;justify-content:center}
+    .game-over-modal.active{display:flex}
+    .game-over-content{background:#fff;border-radius:12px;padding:30px;max-width:400px;width:90%;text-align:center}
+    .game-over-content h2{margin:0 0 20px 0;font-size:28px}
+    .game-over-content .final-score{font-size:48px;font-weight:800;color:#059669;margin:20px 0}
+    .game-over-content .stats{display:flex;justify-content:space-around;margin:20px 0;padding:20px 0;border-top:2px solid #e5e7eb;border-bottom:2px solid #e5e7eb}
+    .game-over-content .stats .stat{display:flex;flex-direction:column}
+    .game-over-content .stats .stat-label{font-size:12px;color:#666}
+    .game-over-content .stats .stat-value{font-size:20px;font-weight:700;color:#333}
+    .game-over-actions{display:flex;gap:10px;margin-top:20px}
+    .game-over-actions .btn{flex:1;padding:15px;font-size:16px}
+    .btn-replay{background:#059669}
+    .btn-home{background:#6b7280}
+    
+    @media (max-width:480px){.stage{height:200px} #jumpBtn{padding:18px 50px;font-size:16px}}
+  </style>
+</head>
+<body>
+  <div class="game-wrap">
+    <!-- Infos tournoi -->
+    <div class="tournament-info-bar">
+      <h3 id="tournamentName">Chargement...</h3>
+      <div class="tournament-stats">
+        <div class="stat">
+          <span class="stat-label">💰 Prize Pool</span>
+          <span class="stat-value" id="prizePool">--</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">👥 Patisipan</span>
+          <span class="stat-value" id="participantCount">--</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">⏳ Tan Ki Rete</span>
+          <span class="stat-value" id="timeRemaining">--:--:--</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">🎮 Ou Pati</span>
+          <span class="stat-value" id="myGamesPlayed">--</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">🏆 Ou Meyè Skor</span>
+          <span class="stat-value" id="myBestScore">--</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="stage" id="stage">
+      <canvas id="c" width="800" height="250"></canvas>
+      <div class="ui">🦖 Tounwa Dino</div>
+      <div class="score" id="score">0</div>
+    </div>
+    
+    <div class="controls">
+      <button id="jumpBtn" class="btn">Sauter</button>
+      <button id="abandonBtn" class="btn abandon-btn">Abandone</button>
+      <div class="hint">Évite les cactus et les ptérodactyles !</div>
+    </div>
+  </div>
+
+  <!-- Modal Game Over -->
+  <div id="gameOverModal" class="game-over-modal">
+    <div class="game-over-content">
+      <h2>🎮 Pati Fini!</h2>
+      <div class="final-score" id="finalScore">0</div>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-label">⏱️ Durasyon</span>
+          <span class="stat-value" id="gameDuration">--</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">📊 Rasyon</span>
+          <span class="stat-value" id="gameRatio">--</span>
+        </div>
+      </div>
+      <div class="game-over-actions">
+        <button id="replayBtn" class="btn btn-replay">🔄 Rejwe</button>
+        <button id="homeBtn" class="btn btn-home">🏠 Akèy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDpylenTapoLXwbMsEavlLt0po5M_bVDBo",
+      authDomain: "mopyonsiteweb.firebaseapp.com",
+      projectId: "mopyonsiteweb",
+      storageBucket: "mopyonsiteweb.firebasestorage.app",
+      messagingSenderId: "535172052074",
+      appId: "1:535172052074:web:c30cefea18ffed7a27c613"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+  </script>
+
+  <script>
+  (function(){
+    const tournamentInfo = JSON.parse(localStorage.getItem('currentTournament') || '{}');
+    if (!tournamentInfo.tournamentId) {
+      alert("Erè: Pa gen enfòmasyon sou tounwa a!");
+      window.location.href = 'tournaments-home-dino.html';
+      return;
+    }
+
+    const { tournamentId, entryFee, tournamentName } = tournamentInfo;
+    let currentUser = null;
+    let tournament = null;
+    let myParticipantData = null;
+    let gameStartTime = null;
+    
+
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        currentUser = user;
+        await loadTournamentData();
+      } else {
+        window.location.href = 'tournaments-home-dino.html';
+      }
+    });
+
+    async function loadTournamentData() {
+      try {
+        const tournamentDoc = await db.collection('tournaments').doc(tournamentId).get();
+        if (!tournamentDoc.exists || tournamentDoc.data().status !== 'active') {
+          alert("Tounwa sa pa disponib ankò!");
+          window.location.href = 'tournaments-home-dino.html';
+          return;
+        }
+        
+        tournament = tournamentDoc.data();
+        
+        if (tournament.endTime.toDate() < new Date()) {
+          alert("Tounwa sa fini deja!");
+          window.location.href = 'tournaments-home-dino.html';
+          return;
+        }
+        
+        const participantDoc = await db.collection('tournaments')
+          .doc(tournamentId).collection('participants').doc(currentUser.uid).get();
+        
+        if (!participantDoc.exists) {
+          alert("Ou pa anrejistre nan tounwa sa!");
+          window.location.href = 'tournaments-home-dino.html';
+          return;
+        }
+        
+        myParticipantData = participantDoc.data();
+        displayTournamentInfo();
+        listenTournamentUpdates();
+        
+      } catch (error) {
+        console.error("Erreur:", error);
+        alert("Erè chajman!");
+      }
+    }
+
+    function displayTournamentInfo() {
+      document.getElementById('tournamentName').textContent = tournament.name;
+      document.getElementById('prizePool').textContent = formatGDS(Math.floor(tournament.totalPot * 0.8));
+      document.getElementById('participantCount').textContent = tournament.participantCount || 0;
+      document.getElementById('myGamesPlayed').textContent = myParticipantData.totalGamesPlayed || 0;
+      document.getElementById('myBestScore').textContent = myParticipantData.bestScore || 0;
+      startCountdown(tournament.endTime.toDate());
+    }
+    
+    function startCountdown(endTime) {
+  const updateTimer = () => {
+    const diff = endTime - new Date();
+    const timerEl = document.getElementById('timeRemaining');
+    
+    if (diff <= 0) {
+      timerEl.textContent = 'FINI';
+      timerEl.style.color = '#dc2626';
+      // ✅ Soumettre le score si le jeu est encore en cours
+      if (running) {
+        handleGameOver();
+      }
+      return;
+    }
+    
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    timerEl.textContent = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+  };
+  updateTimer();
+  setInterval(updateTimer, 1000);
+}
+
+    function listenTournamentUpdates() {
+      db.collection('tournaments').doc(tournamentId).onSnapshot(doc => {
+        if (!doc.exists) return;
+        tournament = doc.data();
+        document.getElementById('prizePool').textContent = formatGDS(Math.floor(tournament.totalPot * 0.8));
+        document.getElementById('participantCount').textContent = tournament.participantCount || 0;
+      });
+      
+      db.collection('tournaments').doc(tournamentId).collection('participants')
+        .doc(currentUser.uid).onSnapshot(doc => {
+          if (!doc.exists) return;
+          myParticipantData = doc.data();
+          document.getElementById('myGamesPlayed').textContent = myParticipantData.totalGamesPlayed || 0;
+          document.getElementById('myBestScore').textContent = myParticipantData.bestScore || 0;
+        });
+    }
+
+    // JEU DINO
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d');
+    let W = canvas.width, H = canvas.height;
+
+    let running = true;
+    let score = 0;
+    let speed = 6;
+    let frame = 0;
+    let obstaclesCount = 0;
+    let pterodactylsCount = 0;
+    let lastObstacleSpawn = 0;
+let lastPterodactylSpawn = 0;
+const minSpaceBetweenTypes = 180; // frames minimum entre cactus et pterodactyl
+
+    const dino = {x:50, y:H-88, w:44, h:40, vy:0, grounded:true, jumpPower:13, gravity:0.7};
+    const groundY = H - 48;
+    let obstacles = [];
+    let pterodactyls = [];
+
+    
+    function spawnObstacle(){
+  if(frame - lastPterodactylSpawn < minSpaceBetweenTypes) return; // Bloque si ptérodactyle récent
+  const types = [{w:20,h:40},{w:28,h:50},{w:12,h:30}];
+  const t = types[Math.floor(Math.random()*types.length)];
+  obstacles.push({x:W+20, w:t.w, h:t.h, y:groundY-t.h});
+  obstaclesCount++;
+  lastObstacleSpawn = frame;
+}
+
+    function spawnPterodactyl(){
+  if(frame - lastObstacleSpawn < minSpaceBetweenTypes) return; // Bloque si cactus récent
+  pterodactyls.push({
+    x:W+30, y:groundY-110, w:36, h:24,
+    wingOffset:Math.random()*Math.PI*2,
+    speed:speed+Math.random()*2+1
+  });
+  pterodactylsCount++;
+  lastPterodactylSpawn = frame;
+}
+
+
+    function doJump(){
+      if(!running || !dino.grounded) return;
+      dino.vy = -dino.jumpPower;
+      dino.grounded = false;
+    }
+
+    document.getElementById('jumpBtn').addEventListener('click', doJump);
+    document.getElementById('abandonBtn').addEventListener('click', handleAbandon);
+    document.getElementById('replayBtn').addEventListener('click', replayTournament);
+    document.getElementById('homeBtn').addEventListener('click', goHome);
+
+    window.addEventListener('keydown', e => {
+      if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();doJump();}
+    });
+
+    function checkCollision(r1,r2){
+      return r1.x<r2.x+r2.w && r1.x+r1.w>r2.x && r1.y<r2.y+r2.h && r1.y+r1.h>r2.y;
+    }
+
+    async function handleGameOver() {
+      if (!running) return;
+      running = false;
+      const gameDuration = Date.now() - gameStartTime;
+      const success = await submitScore(score, gameDuration);
+      if (success) {
+        showGameOverScreen(score, gameDuration);
+      } else {
+        alert("Erè!");
+        goHome();
+      }
+    }
+
+    async function handleAbandon() {
+      if (!running || !confirm("Ou vle abandone?")) return;
+      await handleGameOver();
+    }
+
+    async function submitScore(score, duration) {
+  try {
+    // Récupérer les infos du tournoi depuis localStorage
+    const tournamentData = localStorage.getItem('currentTournament');
+    if (!tournamentData) {
+      alert("❌ Okenn tounwa aktif!");
+      window.location.href = 'tournaments-home-dino.html';
+      return;
+    }
+    
+    const tournament = JSON.parse(tournamentData);
+    const tournamentId = tournament.tournamentId;
+    
+    // NOUVEAU: Vérifier que le tournoi est toujours actif
+    const tournamentDoc = await db.collection('tournaments').doc(tournamentId).get();
+    
+    if (!tournamentDoc.exists) {
+      alert("❌ Tounwa sa pa egziste ankò!");
+      window.location.href = 'tournaments-home-dino.html';
+      return;
+    }
+    
+    const tournamentInfo = tournamentDoc.data();
+    
+    // CRITIQUE: Vérifier le status
+    if (tournamentInfo.status !== 'active') {
+      alert("❌ Tounwa sa te fèmen deja! Skor ou pa ka konte.");
+      window.location.href = 'tournaments-home-dino.html';
+      return;
+    }
+    
+    // CRITIQUE: Vérifier si fermé manuellement
+    if (tournamentInfo.closedAt) {
+      alert("❌ Admin te fèmen tounwa sa! Skor ou pa ka konte.");
+      window.location.href = 'tournaments-home-dino.html';
+      return;
+    }
+    
+    // CRITIQUE: Vérifier si pas expiré
+    if (tournamentInfo.endTime.toDate() < new Date()) {
+      alert("❌ Tan tounwa fini! Skor ou pa ka konte.");
+      window.location.href = 'tournaments-home-dino.html';
+      return;
+    }
+    
+    // Si tout est OK, soumettre le score
+    const ratio = (score / (duration / 1000)).toFixed(2);
+    
+    // Sauvegarder le score
+    await db.collection('tournaments')
+      .doc(tournamentId)
+      .collection('scores')
+      .add({
+        userId: auth.currentUser.uid,
+        score: score,
+        duration: duration,
+        ratio: parseFloat(ratio),
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    
+    // Mettre à jour le participant
+    const participantRef = db.collection('tournaments')
+      .doc(tournamentId)
+      .collection('participants')
+      .doc(auth.currentUser.uid);
+    
+    const participantDoc = await participantRef.get();
+    const currentBest = participantDoc.exists ? participantDoc.data().bestScore : 0;
+    
+    if (score > currentBest) {
+      await participantRef.update({
+        bestScore: score,
+        bestGameDuration: duration,
+        totalGamesPlayed: firebase.firestore.FieldValue.increment(1)
+      });
+    } else {
+      await participantRef.update({
+        totalGamesPlayed: firebase.firestore.FieldValue.increment(1)
+      });
+    }
+    
+    // ✅ AJOUTER CES LIGNES ICI
+    await db.collection('users').doc(auth.currentUser.uid).update({
+      pati: firebase.firestore.FieldValue.increment(1)
+    });
+    
+    alert(`✅ Skor anrejistre: ${score} pts!`);
+    
+    // Demander si le joueur veut rejouer
+    if (confirm("Ou vle rejwe?")) {
+      window.location.reload();
+    } else {
+      window.location.href = 'tournaments-home-dino.html';
+    }
+    
+  } catch (error) {
+    console.error("Erreur soumission score:", error);
+    alert("❌ Erè pandan anrejistreman skor!");
+  }
+}
+
+
+    function showGameOverScreen(sc, dur) {
+      document.getElementById('finalScore').textContent = sc;
+      document.getElementById('gameDuration').textContent = formatDuration(dur);
+      document.getElementById('gameRatio').textContent = (sc/(dur/1000)).toFixed(2) + ' p/s';
+      document.getElementById('gameOverModal').classList.add('active');
+    }
+
+    async function replayTournament() {
+      const tDoc = await db.collection('tournaments').doc(tournamentId).get();
+      if (!tDoc.exists || tDoc.data().status !== 'active') {
+        alert("Tounwa sa fini!");
+        goHome();
+        return;
+      }
+      
+      const userDoc = await db.collection('users').doc(currentUser.uid).get();
+      const balance = userDoc.data().balance || 0;
+      
+      if (balance < entryFee) {
+        alert(`Ou pa gen ase lajan! ${balance} GDS`);
+        goHome();
+        return;
+      }
+      
+      await db.collection('users').doc(currentUser.uid).update({
+        balance: firebase.firestore.FieldValue.increment(-entryFee)
+      });
+      
+      await db.collection('tournaments').doc(tournamentId).collection('participants')
+        .doc(currentUser.uid).update({
+          totalPaid: firebase.firestore.FieldValue.increment(entryFee)
+        });
+      
+      await db.collection('tournaments').doc(tournamentId).update({
+        totalPot: firebase.firestore.FieldValue.increment(entryFee)
+      });
+      
+      location.reload();
+    }
+
+    function goHome() {
+      window.location.href = 'tournaments-home-dino.html';
+    }
+
+    function formatGDS(n) { return n.toLocaleString() + ' GDS'; }
+    function formatDuration(ms) {
+      const s = Math.floor(ms/1000);
+      const m = Math.floor(s/60);
+      return `${m}:${(s%60).toString().padStart(2,'0')}`;
+    }
+    
+
+
+
+    // GAME LOOP
+    gameStartTime = Date.now();
+    let last = performance.now();
+    
+    function loop(now){
+      if(!running) return;
+      const dt = (now - last) / 16.6667;
+      last = now;
+      frame++;
+
+      if(!dino.grounded){
+        dino.vy += dino.gravity * dt;
+        dino.y += dino.vy * dt;
+        if(dino.y >= groundY - dino.h){
+          dino.y = groundY - dino.h;
+          dino.vy = 0;
+          dino.grounded = true;
+        }
+      }
+
+      if(frame % Math.max(35, 80 - Math.floor(score/150)) === 0) spawnObstacle();
+      if(score >= 300 && frame % Math.max(180, 250 - Math.floor(score/200)) === 0 && Math.random() < 0.) spawnPterodactyl();
+
+      for(let i = obstacles.length-1; i >= 0; i--){
+        obstacles[i].x -= speed * dt;
+        if(checkCollision(dino, obstacles[i])) handleGameOver();
+        if(obstacles[i].x + obstacles[i].w < -50) obstacles.splice(i,1);
+      }
+
+      for(let i = pterodactyls.length-1; i >= 0; i--){
+        pterodactyls[i].x -= pterodactyls[i].speed * dt;
+        if(checkCollision(dino, pterodactyls[i])) handleGameOver();
+        if(pterodactyls[i].x + pterodactyls[i].w < -50) pterodactyls.splice(i,1);
+      }
+
+      if(frame % 3 === 0) score += 1;
+      if(score >= 300 && score % 300 === 0) speed += 0.8;
+      
+      document.getElementById('score').textContent = score;
+
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle = '#e9e9e9';
+      ctx.fillRect(0, groundY, W, H - groundY);
+      ctx.strokeStyle = '#cfcfcf';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, groundY);
+      ctx.lineTo(W, groundY);
+      ctx.stroke();
+      
+      ctx.fillStyle = '#111';
+      ctx.fillRect(dino.x, dino.y, dino.w, dino.h);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(dino.x + dino.w - 12, dino.y + 10, 6, 6);
+      
+      obstacles.forEach(o => {
+        ctx.fillStyle = '#333';
+        ctx.fillRect(o.x, o.y, o.w, o.h);
+      });
+      
+      pterodactyls.forEach(p => {
+        ctx.fillStyle = '#555';
+        ctx.fillRect(p.x + 8, p.y + 8, p.w - 16, p.h - 16);
+        const wingFlap = Math.sin(frame * 0.3 + p.wingOffset) * 0.5 + 0.5;
+        const wingHeight = 6 + wingFlap * 4;
+        ctx.fillStyle = '#666';
+        ctx.fillRect(p.x, p.y + 6, 12, wingHeight);
+        ctx.fillRect(p.x + p.w - 12, p.y + 6, 12, wingHeight);
+      });
+
+      if(running) requestAnimationFrame(loop);
+    }
+
+    loop(performance.now());
+  })();
+  </script>
+</body>
+</html>
