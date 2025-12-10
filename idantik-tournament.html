@@ -365,6 +365,11 @@
         }
         
         return true;
+
+        // ✅ AJOUTER CES LIGNES ICI
+    await db.collection('users').doc(auth.currentUser.uid).update({
+      pati: firebase.firestore.FieldValue.increment(1)
+    });
         
       } catch (error) {
         console.error("Erreur soumission score:", error);
