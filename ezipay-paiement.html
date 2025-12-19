@@ -69,9 +69,53 @@ input::placeholder { color: rgba(255,255,255,0.5); }
 
     <div id="message" class="message"></div>
 
-           <div style="max-width:400px; margin:20px auto; padding:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.15); background-color:#fff; text-align:center; font-family:Arial, sans-serif;">
-    <h2 style="color: red; margin-bottom:10px;">Siw bezwen èd pou depo ak retrè ekri nou whatsapp : 509 34125103</h2>
-           </div>
+             <!-- ===== BOUTON WHATSAPP CENTRÉ ===== -->
+<style>
+  .wa-btn-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .wa-help-btn {
+    background: #25D366;
+    color: #ffffff;
+    border: none;
+    padding: 14px 26px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .wa-help-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(0,0,0,0.25);
+  }
+
+  .wa-help-btn:active {
+    transform: scale(0.97);
+  }
+</style>
+
+<div class="wa-btn-container">
+  <button class="wa-help-btn" onclick="waHelp()">
+    Si w pa konprann, ekri nou sou WhatsApp 
+  </button>
+</div>
+
+<script>
+  function waHelp() {
+    const phone = "50934125103";
+    const text = encodeURIComponent(
+      "Bonjou, mwen bezwen plis èd pou m fè depo sou chanpyon509."
+    );
+    window.open("https://wa.me/" + phone + "?text=" + text, "_blank");
+  }
+</script>
+<!-- ===== FIN ===== -->
       
 
     <div class="card">
