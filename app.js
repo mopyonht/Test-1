@@ -985,6 +985,7 @@ const statusText = {
                     
                     let allChoices = [];
                     if (choice.resultat) allChoices.push(choice.resultat);
+                    if (choice.doublechance) allChoices.push(`Double chance: ${choice.doublechance}`);
                     if (choice.btts) allChoices.push(`BTTS: ${choice.btts}`);
                     if (choice.total) allChoices.push(`Total: ${choice.total}`);
                     if (choice.mt1) allChoices.push(`MT1: ${choice.mt1}`);
