@@ -2215,21 +2215,27 @@ header {
     color: #92400e;
 }
 
-
 .btn-youtube {
     display: block;
     margin: 10px auto 0;
     padding: 10px 20px;
-    background: #ff0000;
+    background: linear-gradient(135deg, #ff0000, #cc0000);
     color: white;
     text-decoration: none;
     border-radius: 8px;
     font-weight: bold;
     text-align: center;
-    animation: blink 1s step-start infinite;
+    animation: pulse-yt 1.5s ease-in-out infinite;
+    max-width: 260px;
 }
 
-@keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
+@keyframes pulse-yt {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.5);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 12px 6px rgba(255, 0, 0, 0.3);
+    }
     }
