@@ -2214,3 +2214,22 @@ header {
     font-size: 13px;
     color: #92400e;
 }
+
+
+.btn-youtube {
+    display: block;
+    margin: 10px auto 0;
+    padding: 10px 20px;
+    background: #ff0000;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+    text-align: center;
+    animation: blink 1s step-start infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+    }
