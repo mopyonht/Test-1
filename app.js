@@ -1920,11 +1920,11 @@ function displayParrainageModal() {
             display: block;
             width: 100%;
             padding: 12px;
-            background: rgba(255,255,255,0.06);
-            color: #94a3b8;
+            background: rgba(220,38,38,0.15);
+            color: #f87171;
             font-size: 13px;
             font-weight: 700;
-            border: 1px solid rgba(255,255,255,0.12);
+            border: 1px solid rgba(220,38,38,0.35);
             border-radius: 14px;
             cursor: pointer;
             margin-top: 10px;
@@ -1932,7 +1932,7 @@ function displayParrainageModal() {
             transition: background 0.2s, color 0.2s;
         }
         .free-sub-close-btn:hover {
-            background: rgba(255,255,255,0.12);
+            background: rgba(220,38,38,0.3);
             color: #fff;
         }
         .free-sub-note {
@@ -1978,7 +1978,7 @@ function displayParrainageModal() {
             </button>
 
             <button class="free-sub-close-btn" id="freeSubClose">
-                ✕ Non mèsi, m pa enterese
+                ❌ Fèmen
             </button>
 
             <p class="free-sub-note">🔒 Gratis total — Zèro kòb demann</p>
