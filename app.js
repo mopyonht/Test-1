@@ -1803,3 +1803,195 @@ function displayParrainageModal() {
     document.body.appendChild(popup);
 })();
 // ===== END WHATSAPP POPUP =====
+
+// ===== FREE SUBSCRIPTION POPUP =====
+(function() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .free-sub-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 99999;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            animation: fadeInOverlay 0.4s ease;
+        }
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        .free-sub-card {
+            background: linear-gradient(160deg, #0f172a 0%, #1e293b 60%, #0f2a1a 100%);
+            border-top: 3px solid #f97316;
+            border-radius: 24px 24px 0 0;
+            padding: 26px 20px 30px;
+            width: 100%;
+            max-width: 480px;
+            position: relative;
+            animation: slideUpCard 0.45s cubic-bezier(0.34,1.56,0.64,1);
+            text-align: center;
+        }
+        @keyframes slideUpCard {
+            from { transform: translateY(100%); }
+            to   { transform: translateY(0); }
+        }
+        .free-sub-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            border-radius: 20px;
+            padding: 4px 14px;
+            margin-bottom: 14px;
+        }
+        .free-sub-title {
+            font-size: 22px;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1.2;
+            margin-bottom: 6px;
+        }
+        .free-sub-title em {
+            font-style: normal;
+            background: linear-gradient(90deg, #f97316, #facc15);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .free-sub-subtitle {
+            font-size: 13px;
+            color: #94a3b8;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            padding: 0 8px;
+        }
+        .free-sub-subtitle strong {
+            color: #25D366;
+            font-weight: 700;
+        }
+        .free-sub-features {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .free-sub-feature {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 10px;
+            padding: 9px 12px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .free-sub-feature span:first-child {
+            font-size: 16px;
+        }
+        .free-sub-feature span:last-child {
+            font-size: 13px;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+        .free-sub-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #25D366, #16a34a);
+            color: #fff;
+            font-size: 15px;
+            font-weight: 800;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            letter-spacing: 0.3px;
+            box-shadow: 0 6px 24px rgba(37,211,102,0.35);
+            animation: pulsebtn 2s ease-in-out infinite;
+        }
+        @keyframes pulsebtn {
+            0%,100% { box-shadow: 0 6px 24px rgba(37,211,102,0.35); }
+            50%      { box-shadow: 0 6px 32px rgba(37,211,102,0.6); }
+        }
+        .free-sub-close-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: rgba(255,255,255,0.06);
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 700;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+            letter-spacing: 0.3px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .free-sub-close-btn:hover {
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+        }
+        .free-sub-note {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 12px;
+        }
+    `;
+    document.head.appendChild(style);
+
+    const overlay = document.createElement('div');
+    overlay.className = 'free-sub-overlay';
+    overlay.innerHTML = `
+        <div class="free-sub-card">
+            <div class="free-sub-badge">🎁 Offre Espesyal</div>
+
+            <div class="free-sub-title">
+                Ou poko ka fè<br>nou <em>konfyans ?</em>
+            </div>
+
+            <p class="free-sub-subtitle">
+                Nap <strong>aktive abònman lan pou ou gratis</strong> —<br>
+                san w poko peye — pou w ka fè fich ou yo lib! 🚀
+            </p>
+
+            <div class="free-sub-features">
+                <div class="free-sub-feature">
+                    <span>⚽</span>
+                    <span>Chwazi 18 match ou vle yo</span>
+                </div>
+                <div class="free-sub-feature">
+                    <span>🏆</span>
+                    <span>Chans pou genyen 100,000 Goud</span>
+                </div>
+                <div class="free-sub-feature">
+                    <span>✅</span>
+                    <span>Abònman aktive san peye — 0 Goud</span>
+                </div>
+            </div>
+
+            <button class="free-sub-btn" onclick="window.open('https://wa.me/50955215466?text=Mw%20vle%20aktive%20ab%C3%B2nman%20mw%20an%20gratis','_blank')">
+                💬 Aktive Abònman an Gratis
+            </button>
+
+            <button class="free-sub-close-btn" id="freeSubClose">
+                ✕ Non mèsi, m pa enterese
+            </button>
+
+            <p class="free-sub-note">🔒 Gratis total — Zèro kòb demann</p>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    document.getElementById('freeSubClose').onclick = () => overlay.remove();
+
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.remove();
+    });
+})();
+// ===== END FREE SUBSCRIPTION POPUP =====
+
+        
