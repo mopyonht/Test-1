@@ -1718,3 +1718,88 @@ function displayParrainageModal() {
         }
     });
 }
+
+// ===== WHATSAPP CHAIN POPUP =====
+(function() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .wa-popup {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #1a1a1a, #222);
+            border: 1px solid #25D366;
+            border-radius: 14px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+            width: 90%;
+            max-width: 340px;
+            box-shadow: 0 4px 20px rgba(37, 211, 102, 0.25);
+            animation: slideUpPop 0.4s ease;
+        }
+        @keyframes slideUpPop {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        .wa-popup-icon {
+            font-size: 26px;
+            flex-shrink: 0;
+        }
+        .wa-popup-text {
+            flex: 1;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+        .wa-popup-text span {
+            display: block;
+            color: #f97316;
+            font-size: 11px;
+            font-weight: 400;
+            margin-top: 2px;
+        }
+        .wa-popup-btn {
+            background: linear-gradient(135deg, #25D366, #1aad54);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .wa-popup-close {
+            position: absolute;
+            top: 6px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+            line-height: 1;
+        }
+    `;
+    document.head.appendChild(style);
+
+    const popup = document.createElement('div');
+    popup.className = 'wa-popup';
+    popup.innerHTML = `
+        <button class="wa-popup-close" onclick="this.closest('.wa-popup').remove()">✕</button>
+        <div class="wa-popup-icon">💬</div>
+        <div class="wa-popup-text">
+            Rantre sou chèn WhatsApp nou an
+            <span>Jwenn dènye nouvèl yo</span>
+        </div>
+        <button class="wa-popup-btn" onclick="window.open('https://chat.whatsapp.com/BdcphysfwsXEglJg9jE41N?mode=gi_t','_blank')">Rantre</button>
+    `;
+    document.body.appendChild(popup);
+})();
+// ===== END WHATSAPP POPUP =====
