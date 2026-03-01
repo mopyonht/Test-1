@@ -1307,7 +1307,7 @@ function closeReklameModal() {
 }
 
 function sendReklameWhatsApp(ficheId) {
-    const phoneNumber = '50934125103';
+    const phoneNumber = '50955215466';
     const message = encodeURIComponent(`Fich mw an pase ! Mw vin reklame kòb mw an.\n\nID Fich: ${ficheId}`);
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
     
