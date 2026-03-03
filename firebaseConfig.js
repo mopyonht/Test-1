@@ -101,29 +101,5 @@ window.firebaseApp = {
   CHIEF_ADMIN_UID: CHIEF_ADMIN_UID
 };
 
-firebase.auth().onAuthStateChanged(async (user) => {
-  if (!user) return;
-
-  try {
-    // Requête normale
-    const fichesSnap = await db.collection('fiches')
-      .where('userId', '==', user.uid)
-      .orderBy('timestamp', 'desc')
-      .limit(50)
-      .get();
-
-    updateProfileUI(fichesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-  } catch (err) {
-    console.warn("⚠️ v8 SDK bug interne, récupération fallback:", err);
-    // Fallback sans orderBy pour éviter le crash interne
-    const fallbackSnap = await db.collection('fiches')
-      .where('userId', '==', user.uid)
-      .limit(50)
-      .get();
-
-    updateProfileUI(fallbackSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-  }
-});
-
 console.log('✅ Firebase v8 initialisé'); 
 console.log("CURRENT USER AU LOAD:", auth.currentUser);
