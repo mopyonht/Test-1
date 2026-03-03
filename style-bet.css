@@ -2215,6 +2215,30 @@ header {
     color: #92400e;
 }
 
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    margin-right: 8px;
+    font-size: 12px;
+}
+
+.status-won {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.status-lost {
+    background-color: #f44336;
+    color: white;
+}
+
+.status-pending {
+    background-color: #FFC107;
+    color: black;
+    }
+
 .btn-youtube {
     display: block;
     margin: 10px auto 0;
