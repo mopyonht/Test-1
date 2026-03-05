@@ -25,7 +25,7 @@ const COTES = {
         '<0.5': { montant: +20000 },
         '<1.5': { montant: +10000 },
         '<2.5': { montant: +4000 },
-        '<3.5': { montant: -1000 },
+        '<3.5': { montant: -2000 },
         '>0.5': { montant: -15000 },
         '>1.5': { montant: -8000 },
         '>2.5': { montant: +5000 },
