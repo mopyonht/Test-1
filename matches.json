@@ -1928,7 +1928,15 @@
   "league": "FA Cup",
   "team1": "Newcastle United",
   "team2": "Manchester City",
-  "datetime": "2026-03-07T20:00:00Z"  
+  "datetime": "2026-03-07T20:00:00Z",
+  "cotes": {
+    "1": 1.45,
+    "X": 3.80,
+    "2": 5.20,
+    "1X": 1.15,
+    "X2": 1.35,
+    "12": 1.10
+  }
 },
 {
   "id": "match_1917",
