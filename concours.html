@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ht">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konkou Parenn — Anti-Paryaj</title>
+    <link rel="stylesheet" href="concours.css">
+</head>
+<body>
+
+    <!-- Firebase v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="firebaseConfig.js"></script>
+
+    <!-- HEADER -->
+    <header>
+        <a href="anti-paryaj.html" class="back-btn">← Retounen</a>
+        <span class="logo">Anti-Paryaj</span>
+        <div style="width:80px;"></div>
+    </header>
+
+    <!-- HERO -->
+    <div class="hero">
+        <div class="hero-badge">🏆 Konkou Espesyal</div>
+        <div class="hero-title">CHANPYON<br>PARENN</div>
+        <div class="hero-prize">250,000 Goud</div>
+        <div class="hero-subtitle">Pou moun ki fè vini plis moun sou Anti-Paryaj</div>
+
+        <!-- Compte à rebours -->
+        <div class="countdown-section">
+            <div class="countdown-label">⏳ Konkou a fini nan</div>
+            <div class="countdown-grid">
+                <div class="countdown-item">
+                    <span class="countdown-num" id="cdDays">00</span>
+                    <span class="countdown-unit">Jou</span>
+                </div>
+                <div class="countdown-item countdown-sep">:</div>
+                <div class="countdown-item">
+                    <span class="countdown-num" id="cdHours">00</span>
+                    <span class="countdown-unit">Èd tan</span>
+                </div>
+                <div class="countdown-item countdown-sep">:</div>
+                <div class="countdown-item">
+                    <span class="countdown-num" id="cdMins">00</span>
+                    <span class="countdown-unit">Minit</span>
+                </div>
+                <div class="countdown-item countdown-sep">:</div>
+                <div class="countdown-item">
+                    <span class="countdown-num" id="cdSecs">00</span>
+                    <span class="countdown-unit">Segond</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Règles rapides -->
+        <div class="rules-strip">
+            <div class="rule-chip">
+                ✍️ Chak enskripsyon = <span class="rule-pts">&nbsp;+1 pwen</span>
+            </div>
+            <div class="rule-chip">
+                ⭐ Chak abònman = <span class="rule-pts">&nbsp;+3 pwen</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENU PRINCIPAL -->
+    <div class="container">
+
+        <!-- Prix -->
+        <div class="prize-card">
+            <div class="prize-amount">250,000</div>
+            <div class="prize-label">Goud pou #1 — 10 Avril 2025</div>
+            <div class="prize-note">
+                🎯 Pataje lyen ou ak tout moun — Chak moun ki enskri = pwen, chak moun ki peye abònman = 3× plis pwen
+            </div>
+        </div>
+
+        <!-- MON LIEN (rempli par JS) -->
+        <div id="mySection"></div>
+
+        <!-- LEADERBOARD -->
+        <div class="leaderboard-card">
+            <div class="leaderboard-header">
+                <h2>🏆 Klasman Aktyèl</h2>
+                <span class="leaderboard-subtitle">Top 10</span>
+            </div>
+            <div class="leaderboard-list" id="leaderboardList">
+                <div class="lb-loading">Chajman klasman</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="concours.js"></script>
+</body>
+</html>
