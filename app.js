@@ -114,6 +114,15 @@ document.addEventListener('DOMContentLoaded', () => {
     updateFilterBadge();
 });
 
+// Capturer ref depuis l'URL
+(function() {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) {
+        sessionStorage.setItem('pendingRef', ref.toUpperCase());
+    }
+})();
+
 // ================= UTILS =================
 const $ = (id) => document.getElementById(id);
 const bindClick = (id, handler) => {
