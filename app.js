@@ -2293,115 +2293,127 @@ overlay.addEventListener('click', (e) => {
 })();
 // ===== END WELCOME FREE FICHES POPUP =====
 
-// ===== PROMO POPUP =====
-(function() {
 
+// ===== RETRAIT MINIMUM POPUP =====
+(function() {
     setTimeout(() => {
         const style = document.createElement('style');
         style.textContent = `
-            .promo-overlay {
+            .retrait-overlay {
                 position: fixed;
                 inset: 0;
-                background: rgba(0,0,0,0.8);
+                background: rgba(0,0,0,0.85);
                 z-index: 99999;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                animation: promoFadeIn 0.4s ease;
+                animation: retraitFadeIn 0.4s ease;
                 padding: 20px;
             }
-            @keyframes promoFadeIn {
+            @keyframes retraitFadeIn {
                 from { opacity: 0; }
                 to   { opacity: 1; }
             }
-            .promo-card {
-                background: linear-gradient(160deg, #0f172a 0%, #1e293b 60%, #0f2a1a 100%);
-                border: 1px solid #16a34a;
+            .retrait-card {
+                background: linear-gradient(160deg, #0f172a 0%, #1e293b 60%, #1a0f0f 100%);
+                border: 1px solid #dc2626;
                 border-radius: 20px;
                 overflow: hidden;
                 width: 100%;
                 max-width: 340px;
                 position: relative;
-                animation: promoSlideUp 0.45s cubic-bezier(0.34,1.56,0.64,1);
-                box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+                animation: retraitSlideUp 0.45s cubic-bezier(0.34,1.56,0.64,1);
+                box-shadow: 0 20px 60px rgba(0,0,0,0.6);
             }
-            @keyframes promoSlideUp {
+            @keyframes retraitSlideUp {
                 from { opacity: 0; transform: translateY(40px); }
                 to   { opacity: 1; transform: translateY(0); }
             }
-            .promo-close {
-                position: absolute;
-                top: 10px;
-                right: 12px;
-                background: rgba(0,0,0,0.5);
-                border: none;
-                color: #fff;
-                font-size: 16px;
-                width: 28px;
-                height: 28px;
-                border-radius: 50%;
-                cursor: pointer;
-                z-index: 10;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                line-height: 1;
+            .retrait-header {
+                background: linear-gradient(90deg, #dc2626, #b91c1c);
+                padding: 18px 16px 14px;
+                text-align: center;
             }
-            .promo-img {
-    width: 100%;
-    height: auto;
-    display: block;
-}
-
-            .promo-body {
+            .retrait-icon {
+                font-size: 36px;
+                display: block;
+                margin-bottom: 6px;
+            }
+            .retrait-header-title {
+                font-size: 18px;
+                font-weight: 900;
+                color: #fff;
+                letter-spacing: 0.5px;
+            }
+            .retrait-body {
                 padding: 20px 16px 24px;
                 text-align: center;
             }
-            .promo-title {
-                font-size: 20px;
+            .retrait-rule {
+                font-size: 28px;
                 font-weight: 900;
-                color: #fff;
-                line-height: 1.3;
-                margin-bottom: 10px;
                 background: linear-gradient(90deg, #f97316, #facc15);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
+                margin-bottom: 14px;
+                line-height: 1.2;
             }
-            .promo-subtitle {
+            .retrait-text {
                 font-size: 13px;
                 color: #94a3b8;
-                font-weight: 500;
-                line-height: 1.6;
+                line-height: 1.7;
+                margin-bottom: 20px;
+            }
+            .retrait-text strong {
+                color: #f8fafc;
+            }
+            .retrait-btn {
+                background: linear-gradient(90deg, #dc2626, #b91c1c);
+                border: none;
+                color: #fff;
+                font-size: 15px;
+                font-weight: 700;
+                padding: 12px 32px;
+                border-radius: 50px;
+                cursor: pointer;
+                width: 100%;
+                letter-spacing: 0.3px;
             }
         `;
         document.head.appendChild(style);
 
         const overlay = document.createElement('div');
-        overlay.className = 'promo-overlay';
+        overlay.className = 'retrait-overlay';
         overlay.innerHTML = `
-            <div class="promo-card">
-                <button class="promo-close" id="promoClose">✕</button>
-                <img class="promo-img" src="pic1.jpg" alt="Anti-Paryaj Promo">
-                <div class="promo-body">
-                    <div class="promo-title">Parye gratis sou Anti-Paryaj !!</div>
-                    <div class="promo-subtitle">Peye sèlman 150 goud pa mwa.<br>Nap fèw kado 2 fich pa semèn.</div>
+            <div class="retrait-card">
+                <div class="retrait-header">
+                    <span class="retrait-icon">⚠️</span>
+                    <div class="retrait-header-title">Règ Retrè Anti-Paryaj</div>
+                </div>
+                <div class="retrait-body">
+                    <div class="retrait-rule">Minimòm retrè<br>5 000 GDS</div>
+                    <div class="retrait-text">
+                        <strong>Anti-Paryaj se yon platfòm gratis.</strong><br>
+                        Nou ba ou kredi pou jwe san ou pa depoze anyen.<br><br>
+                        Poutèt sa, <strong>tout retrè anba 5 000 goud yo bloke.</strong><br>
+                        Règ sa a klè, fiks, epi li pa chanje.<br><br>
+                        Si ou dakò — byenvini. ✅<br>
+                        Sinon — nou respekte desizyon ou. 🤝
+                    </div>
+                    <button class="retrait-btn" id="retraitOk">Mwen Konprann</button>
                 </div>
             </div>
         `;
         document.body.appendChild(overlay);
 
-        const closePromo = () => {
-            overlay.remove();
-        };
-
-        document.getElementById('promoClose').onclick = closePromo;
+        document.getElementById('retraitOk').onclick = () => overlay.remove();
         overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) closePromo();
+            if (e.target === overlay) overlay.remove();
         });
 
     }, 5000);
 })();
-// ===== END PROMO POPUP =====
+// ===== END RETRAIT MINIMUM POPUP =====
 
 // ===== PHONE MODAL =====
 (function() {
