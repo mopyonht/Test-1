@@ -2293,251 +2293,219 @@ overlay.addEventListener('click', (e) => {
 })();
 // ===== END WELCOME FREE FICHES POPUP =====
 
-
-// ===== RETRAIT MINIMUM POPUP =====
+// ===== TOUNWA LAUNCH POPUP =====
 (function() {
     setTimeout(() => {
         const style = document.createElement('style');
         style.textContent = `
-            .retrait-overlay {
+            .tounwa-overlay {
                 position: fixed;
                 inset: 0;
-                background: rgba(0,0,0,0.85);
+                background: rgba(0,0,0,0.88);
                 z-index: 99999;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                animation: retraitFadeIn 0.4s ease;
+                animation: tounwaFadeIn 0.4s ease;
                 padding: 20px;
             }
-            @keyframes retraitFadeIn {
+            @keyframes tounwaFadeIn {
                 from { opacity: 0; }
                 to   { opacity: 1; }
             }
-            .retrait-card {
-                background: linear-gradient(160deg, #0f172a 0%, #1e293b 60%, #1a0f0f 100%);
-                border: 1px solid #dc2626;
+            .tounwa-card {
+                background: linear-gradient(160deg, #052e16 0%, #14532d 60%, #064e3b 100%);
+                border: 1px solid #22c55e;
                 border-radius: 20px;
                 overflow: hidden;
                 width: 100%;
                 max-width: 340px;
                 position: relative;
-                animation: retraitSlideUp 0.45s cubic-bezier(0.34,1.56,0.64,1);
-                box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+                animation: tounwaSlideUp 0.45s cubic-bezier(0.34,1.56,0.64,1);
+                box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(34,197,94,0.15);
             }
-            @keyframes retraitSlideUp {
+            @keyframes tounwaSlideUp {
                 from { opacity: 0; transform: translateY(40px); }
                 to   { opacity: 1; transform: translateY(0); }
             }
-            .retrait-header {
-                background: linear-gradient(90deg, #dc2626, #b91c1c);
+            .tounwa-confetti {
+                position: absolute;
+                top: 0; left: 0; right: 0;
+                height: 6px;
+                background: repeating-linear-gradient(
+                    90deg,
+                    #22c55e 0px, #22c55e 12px,
+                    #facc15 12px, #facc15 24px,
+                    #4ade80 24px, #4ade80 36px,
+                    #a3e635 36px, #a3e635 48px
+                );
+            }
+            .tounwa-header {
+                background: linear-gradient(90deg, #16a34a, #15803d);
                 padding: 18px 16px 14px;
                 text-align: center;
             }
-            .retrait-icon {
+            .tounwa-icon {
                 font-size: 36px;
                 display: block;
                 margin-bottom: 6px;
+                animation: tounwaBounce 0.8s cubic-bezier(0.34,1.56,0.64,1) 0.5s both;
             }
-            .retrait-header-title {
+            @keyframes tounwaBounce {
+                from { transform: scale(0); }
+                to   { transform: scale(1); }
+            }
+            .tounwa-header-title {
                 font-size: 18px;
                 font-weight: 900;
                 color: #fff;
                 letter-spacing: 0.5px;
+                text-shadow: 0 1px 4px rgba(0,0,0,0.4);
             }
-            .retrait-body {
+            .tounwa-header-sub {
+                font-size: 11px;
+                color: #bbf7d0;
+                margin-top: 4px;
+                font-weight: 600;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+            }
+            .tounwa-body {
                 padding: 20px 16px 24px;
                 text-align: center;
             }
-            .retrait-rule {
-                font-size: 28px;
+            .tounwa-prizes {
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+                margin-bottom: 16px;
+            }
+            .tounwa-prize-box {
+                flex: 1;
+                background: rgba(34,197,94,0.1);
+                border: 1px solid rgba(34,197,94,0.35);
+                border-radius: 12px;
+                padding: 10px 8px;
+            }
+            .tounwa-prize-amount {
+                font-size: 20px;
                 font-weight: 900;
-                background: linear-gradient(90deg, #f97316, #facc15);
+                background: linear-gradient(90deg, #4ade80, #facc15);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
-                margin-bottom: 14px;
-                line-height: 1.2;
+                line-height: 1.1;
             }
-            .retrait-text {
+            .tounwa-prize-label {
+                font-size: 10px;
+                color: #86efac;
+                margin-top: 3px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .tounwa-matchs {
                 font-size: 13px;
-                color: #94a3b8;
-                line-height: 1.7;
-                margin-bottom: 20px;
+                font-weight: 800;
+                color: #facc15;
+                margin-bottom: 14px;
+                letter-spacing: 0.3px;
             }
-            .retrait-text strong {
-                color: #f8fafc;
+            .tounwa-text {
+                font-size: 12.5px;
+                color: #86efac;
+                line-height: 1.75;
+                margin-bottom: 8px;
             }
-            .retrait-btn {
-                background: linear-gradient(90deg, #dc2626, #b91c1c);
+            .tounwa-text strong {
+                color: #f0fdf4;
+            }
+            .tounwa-divider {
+                border: none;
+                border-top: 1px solid rgba(34,197,94,0.2);
+                margin: 14px 0;
+            }
+            .tounwa-notice {
+                font-size: 11.5px;
+                color: #6ee7b7;
+                line-height: 1.65;
+                background: rgba(0,0,0,0.2);
+                border-radius: 10px;
+                padding: 10px 12px;
+                margin-bottom: 18px;
+                text-align: left;
+            }
+            .tounwa-notice strong {
+                color: #fff;
+            }
+            .tounwa-btn {
+                background: linear-gradient(90deg, #16a34a, #15803d);
                 border: none;
                 color: #fff;
                 font-size: 15px;
-                font-weight: 700;
-                padding: 12px 32px;
+                font-weight: 800;
+                padding: 13px 32px;
                 border-radius: 50px;
                 cursor: pointer;
                 width: 100%;
                 letter-spacing: 0.3px;
+                box-shadow: 0 4px 20px rgba(22,163,74,0.4);
+                transition: transform 0.15s ease, box-shadow 0.15s ease;
+            }
+            .tounwa-btn:active {
+                transform: scale(0.97);
+                box-shadow: 0 2px 10px rgba(22,163,74,0.3);
             }
         `;
         document.head.appendChild(style);
 
         const overlay = document.createElement('div');
-        overlay.className = 'retrait-overlay';
+        overlay.className = 'tounwa-overlay';
         overlay.innerHTML = `
-            <div class="retrait-card">
-                <div class="retrait-header">
-                    <span class="retrait-icon">⚠️</span>
-                    <div class="retrait-header-title">Règ Retrè Anti-Paryaj</div>
+            <div class="tounwa-card">
+                <div class="tounwa-confetti"></div>
+                <div class="tounwa-header">
+                    <span class="tounwa-icon">🏆</span>
+                    <div class="tounwa-header-title">Anti-Paryaj Tounwa</div>
+                    <div class="tounwa-header-sub">🎉 Lanse Demen — Dimanch 15 Mas</div>
                 </div>
-                <div class="retrait-body">
-                    <div class="retrait-rule">Minimòm retrè<br>5 000 GDS</div>
-                    <div class="retrait-text">
-                        <strong>Anti-Paryaj se yon platfòm gratis.</strong><br>
-                        Nou ba ou kredi pou jwe san ou pa depoze anyen.<br><br>
-                        Poutèt sa, <strong>tout retrè anba 5 000 goud yo bloke.</strong><br>
-                        Règ sa a klè, fiks, epi li pa chanje.<br><br>
-                        Si ou dakò — byenvini. ✅<br>
-                        Sinon — nou respekte desizyon ou. 🤝
+                <div class="tounwa-body">
+                    <div class="tounwa-matchs">⚽ Jwe sèlman 5 match ak sèlman 150 goud — Genyen gwo pri!</div>
+                    <div class="tounwa-prizes">
+                        <div class="tounwa-prize-box">
+                            <div class="tounwa-prize-amount">10 000</div>
+                            <div class="tounwa-prize-label">Goud 🥈</div>
+                        </div>
+                        <div class="tounwa-prize-box">
+                            <div class="tounwa-prize-amount">50 000</div>
+                            <div class="tounwa-prize-label">Goud 🥇</div>
+                        </div>
                     </div>
-                    <button class="retrait-btn" id="retraitOk">Mwen Konprann</button>
+                    <div class="tounwa-text">
+                        <strong>Ansyen sistèm nan ap chanje demen apremidi</strong> pou tout moun — sòf abonman ki deja aktif yo.<br><br>
+                        Prepare ou — <strong>Tounwa a kòmanse demen! 🔥</strong>
+                    </div>
+                    <hr class="tounwa-divider">
+                    <div class="tounwa-notice">
+                        📵 <strong>Nimewo WhatsApp nou bloke.</strong> Yon <strong>nouvo nimewo</strong> ap disponib demen swa.<br><br>
+                        💸 <strong>Depo san limit</strong> disponib demen sou:<br>
+                        &nbsp;&nbsp;✅ <strong>Moncash</strong><br>
+                        &nbsp;&nbsp;✅ <strong>Natcash</strong>
+                    </div>
+                    <button class="tounwa-btn" id="tounwaOk">Konpris — Mwen Pare! 🚀</button>
                 </div>
             </div>
         `;
         document.body.appendChild(overlay);
 
-        document.getElementById('retraitOk').onclick = () => overlay.remove();
+        document.getElementById('tounwaOk').onclick = () => overlay.remove();
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) overlay.remove();
         });
 
     }, 5000);
 })();
-// ===== END RETRAIT MINIMUM POPUP =====
+// ===== END TOUNWA LAUNCH POPUP =====
 
-// ===== PHONE MODAL =====
-(function() {
-    if (localStorage.getItem('phoneModalDone')) return;
+            
 
-    setTimeout(async () => {
-        if (!currentUser) return;
-
-        // Vérifier si téléphone déjà enregistré
-        const userDoc = await window.firebaseApp.db.collection('users').doc(currentUser.uid).get();
-        if (userDoc.data()?.phone) {
-            localStorage.setItem('phoneModalDone', '1');
-            return;
-        }
-
-        const style = document.createElement('style');
-        style.textContent = `
-            .phone-overlay {
-                position: fixed;
-                inset: 0;
-                background: rgba(0,0,0,0.7);
-                z-index: 99999;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 20px;
-                animation: phoneFadeIn 0.3s ease;
-            }
-            @keyframes phoneFadeIn {
-                from { opacity: 0; }
-                to   { opacity: 1; }
-            }
-            .phone-card {
-                background: linear-gradient(160deg, #0f172a, #1e293b);
-                border: 1px solid #16a34a;
-                border-radius: 20px;
-                padding: 28px 22px;
-                width: 100%;
-                max-width: 360px;
-                text-align: center;
-                animation: phoneSlideUp 0.4s cubic-bezier(0.34,1.56,0.64,1);
-            }
-            @keyframes phoneSlideUp {
-                from { opacity: 0; transform: translateY(30px); }
-                to   { opacity: 1; transform: translateY(0); }
-            }
-            .phone-card h3 {
-                color: #fff;
-                font-size: 18px;
-                font-weight: 800;
-                margin-bottom: 8px;
-            }
-            .phone-card p {
-                color: #94a3b8;
-                font-size: 13px;
-                line-height: 1.6;
-                margin-bottom: 20px;
-            }
-            .phone-input {
-                width: 100%;
-                padding: 12px 16px;
-                border-radius: 10px;
-                border: 1px solid #16a34a;
-                background: rgba(255,255,255,0.05);
-                color: #fff;
-                font-size: 15px;
-                margin-bottom: 12px;
-                box-sizing: border-box;
-                outline: none;
-            }
-            .phone-input::placeholder { color: #475569; }
-            .phone-submit {
-                width: 100%;
-                padding: 13px;
-                background: linear-gradient(135deg, #16a34a, #15803d);
-                color: #fff;
-                font-size: 14px;
-                font-weight: 800;
-                border: none;
-                border-radius: 10px;
-                cursor: pointer;
-                margin-bottom: 10px;
-            }
-            .phone-skip {
-                background: none;
-                border: none;
-                color: #475569;
-                font-size: 12px;
-                cursor: pointer;
-                text-decoration: underline;
-            }
-        `;
-        document.head.appendChild(style);
-
-        const overlay = document.createElement('div');
-        overlay.className = 'phone-overlay';
-        overlay.innerHTML = `
-            <div class="phone-card">
-                <div style="font-size:32px;margin-bottom:12px;">📱</div>
-                <h3>Ajoute nimewo ou</h3>
-                <input class="phone-input" id="phoneInput" type="tel" placeholder="Ex: 50912345678">
-                <button class="phone-submit" id="phoneSubmit">✅ Konfime</button>
-                <button class="phone-skip" id="phoneSkip">Pita</button>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-
-        document.getElementById('phoneSubmit').onclick = async () => {
-            const phone = document.getElementById('phoneInput').value.trim();
-            if (!phone) {
-                showToast('⚠️ Antre nimewo ou anvan');
-                return;
-            }
-            await window.firebaseApp.db.collection('users').doc(currentUser.uid).update({ phone });
-            localStorage.setItem('phoneModalDone', '1');
-            if (userData) userData.phone = phone;
-            overlay.remove();
-            showToast('✅ Nimewo anrejistre!');
-        };
-
-        document.getElementById('phoneSkip').onclick = () => {
-            overlay.remove();
-        };
-
-    }, 15000);
-})();
-// ===== END PHONE MODAL =====
+        
