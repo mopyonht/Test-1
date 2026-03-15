@@ -2505,6 +2505,256 @@ overlay.addEventListener('click', (e) => {
     }, 5000);
 })();
 // ===== END TOUNWA LAUNCH POPUP =====
+// ===== MAINTENANCE + TOUNWA LAUNCH POPUP =====
+(function() {
+    const style = document.createElement('style');
+    style.textContent = `
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        .maint-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.96);
+            z-index: 999999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: maintFadeIn 0.3s ease;
+        }
+        @keyframes maintFadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        .maint-card {
+            background: linear-gradient(160deg, #052e16 0%, #14532d 60%, #064e3b 100%);
+            border: 1px solid #22c55e;
+            border-radius: 20px;
+            overflow: hidden;
+            width: 100%;
+            max-width: 340px;
+            position: relative;
+            animation: maintSlideUp 0.45s cubic-bezier(0.34,1.56,0.64,1);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(34,197,94,0.15);
+        }
+        @keyframes maintSlideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .maint-confetti {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 6px;
+            background: repeating-linear-gradient(
+                90deg,
+                #22c55e 0px,  #22c55e 12px,
+                #facc15 12px, #facc15 24px,
+                #4ade80 24px, #4ade80 36px,
+                #a3e635 36px, #a3e635 48px
+            );
+        }
+        .maint-header {
+            background: linear-gradient(90deg, #991b1b, #7f1d1d);
+            padding: 18px 16px 14px;
+            text-align: center;
+        }
+        .maint-icon {
+            font-size: 36px;
+            display: block;
+            margin-bottom: 6px;
+            animation: maintBounce 0.8s cubic-bezier(0.34,1.56,0.64,1) 0.3s both;
+        }
+        @keyframes maintBounce {
+            from { transform: scale(0); }
+            to   { transform: scale(1); }
+        }
+        .maint-header-title {
+            font-size: 18px;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+        }
+        .maint-header-sub {
+            font-size: 11px;
+            color: #fca5a5;
+            margin-top: 4px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .maint-body {
+            padding: 20px 16px 24px;
+            text-align: center;
+        }
+        .maint-alert {
+            background: rgba(239,68,68,0.12);
+            border: 1px solid rgba(239,68,68,0.4);
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #fca5a5;
+            line-height: 1.7;
+            text-align: left;
+        }
+        .maint-alert strong {
+            color: #fff;
+        }
+        .maint-divider {
+            border: none;
+            border-top: 1px solid rgba(34,197,94,0.2);
+            margin: 16px 0;
+        }
+
+        /* ---- Section Tounwa ---- */
+        .maint-tounwa-label {
+            font-size: 11px;
+            color: #86efac;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        .maint-tounwa-title {
+            font-size: 20px;
+            font-weight: 900;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+        .maint-tounwa-date {
+            font-size: 12px;
+            color: #facc15;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 14px;
+        }
+        .maint-prizes {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 14px;
+        }
+        .maint-prize-box {
+            flex: 1;
+            background: rgba(34,197,94,0.1);
+            border: 1px solid rgba(34,197,94,0.35);
+            border-radius: 12px;
+            padding: 10px 8px;
+        }
+        .maint-prize-amount {
+            font-size: 20px;
+            font-weight: 900;
+            background: linear-gradient(90deg, #4ade80, #facc15);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.1;
+        }
+        .maint-prize-label {
+            font-size: 10px;
+            color: #86efac;
+            margin-top: 3px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .maint-notice {
+            font-size: 11.5px;
+            color: #6ee7b7;
+            line-height: 1.65;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 18px;
+            text-align: left;
+        }
+        .maint-notice strong {
+            color: #fff;
+        }
+        .maint-btn {
+            background: linear-gradient(90deg, #16a34a, #15803d);
+            border: none;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 800;
+            padding: 13px 32px;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            letter-spacing: 0.3px;
+            box-shadow: 0 4px 20px rgba(22,163,74,0.4);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .maint-btn:active {
+            transform: scale(0.97);
+            box-shadow: 0 2px 10px rgba(22,163,74,0.3);
+        }
+    `;
+    document.head.appendChild(style);
+
+    const overlay = document.createElement('div');
+    overlay.className = 'maint-overlay';
+    overlay.innerHTML = `
+        <div class="maint-card">
+            <div class="maint-confetti"></div>
+
+            <div class="maint-header">
+                <span class="maint-icon">🔧</span>
+                <div class="maint-header-title">Paryaj Anreta — Antrètyen</div>
+                <div class="maint-header-sub">⚠️ Paj la pa disponib kounye a</div>
+            </div>
+
+            <div class="maint-body">
+                <div class="maint-alert">
+                    ⚠️ <strong>Nou detekte yon erè teknik enpòtan.</strong><br><br>
+                    Kèk match te afiche ak <strong>move dat</strong>. Nou nan pwosesis koreksyon pou asire <strong>entegrite tout paryaj yo</strong>.<br><br>
+                    🔒 Paj paryaj la <strong>bloke tanporèman</strong> pandan travay antrètyen an.
+                </div>
+
+                <hr class="maint-divider">
+
+                <div class="maint-tounwa-label">✨ Gwo nouvèl</div>
+                <div class="maint-tounwa-title">🏆 Anti-Paryaj Tounwa</div>
+                <div class="maint-tounwa-date">🎉 Lanse Demen — Dimanch 15 Mas</div>
+
+                <div class="maint-prizes">
+                    <div class="maint-prize-box">
+                        <div class="maint-prize-amount">10 000</div>
+                        <div class="maint-prize-label">Goud 🥈</div>
+                    </div>
+                    <div class="maint-prize-box">
+                        <div class="maint-prize-amount">50 000</div>
+                        <div class="maint-prize-label">Goud 🥇</div>
+                    </div>
+                </div>
+
+                <div class="maint-notice">
+                    ⚽ <strong>Jwe sèlman 5 match</strong> — Genyen gwo pri!<br><br>
+                    📵 <strong>Nimewo WhatsApp nou bloke.</strong> Yon <strong>nouvo nimewo</strong> ap disponib demen swa.<br><br>
+                    💸 <strong>Depo san limit</strong> disponib demen sou:<br>
+                    &nbsp;&nbsp;✅ <strong>Moncash</strong><br>
+                    &nbsp;&nbsp;✅ <strong>Natcash</strong>
+                </div>
+
+                <button class="maint-btn" id="maintOk">Konpris — Mwen Ap Tann! 🚀</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    // ❌ PAS de fermeture — ni bouton, ni clic extérieur
+    // Le bouton fait juste un feedback visuel mais ne ferme pas
+    document.getElementById('maintOk').onclick = (e) => {
+        e.target.textContent = '✅ Mèsi — Nou Ap Ranje Sa!';
+        e.target.disabled = true;
+        e.target.style.opacity = '0.6';
+    };
+
+    // Bloquer scroll du body
+    document.body.style.overflow = 'hidden';
+
+})();
+// ===== END MAINTENANCE + TOUNWA LAUNCH POPUP =====
 
             
 
