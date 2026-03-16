@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ht">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klasman — Chanpyon509</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="firebaseConfig.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap');
+
+:root {
+    --gold: #f59e0b;
+    --gold-light: #facc15;
+    --purple: #7c3aed;
+    --purple-light: #a78bfa;
+    --bg: #080c14;
+    --card: #111827;
+    --border: rgba(245,158,11,0.15);
+    --text: #f1f5f9;
+    --text-dim: #64748b;
+    --success: #4ade80;
+    --danger: #f87171;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 40px;
+}
+
+.bg-grid {
+    position: fixed; inset: 0;
+    background-image:
+        linear-gradient(rgba(245,158,11,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(245,158,11,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+}
+.bg-glow {
+    position: fixed; top: -200px; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 400px;
+    background: radial-gradient(ellipse, rgba(245,158,11,0.07) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+}
+
+header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(8,12,20,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex; align-items: center; gap: 14px;
+}
+.back-btn {
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-dim);
+    font-size: 18px; text-decoration: none; transition: all 0.2s;
+}
+.back-btn:hover { border-color: var(--gold); color: var(--gold); }
+.header-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px; letter-spacing: 2px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.tabs-wrap {
+    position: relative; z-index: 1;
+    padding: 16px 20px 0;
+    display: flex; gap: 10px;
+    overflow-x: auto; scrollbar-width: none;
+}
+.tabs-wrap::-webkit-scrollbar { display: none; }
+.tab-btn {
+    flex-shrink: 0; padding: 10px 22px;
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 30px;
+    font-size: 13px; font-weight: 700;
+    color: var(--text-dim); cursor: pointer; transition: all 0.2s;
+}
+.tab-btn.active { background: var(--gold); border-color: var(--gold); color: #000; }
+.tab-btn.elite.active {
+    background: linear-gradient(135deg, var(--purple), #6d28d9);
+    border-color: var(--purple); color: #fff;
+}
+
+.main { position: relative; z-index: 1; padding: 20px; }
+
+.tournoi-block {
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 18px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.tournoi-block-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(255,255,255,0.02);
+}
+.tournoi-block-left { display: flex; flex-direction: column; gap: 4px; }
+.tournoi-block-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 800; letter-spacing: 1px;
+    padding: 3px 10px; border-radius: 20px;
+}
+.tournoi-block-badge.t100 {
+    background: rgba(245,158,11,0.12);
+    border: 1px solid rgba(245,158,11,0.3);
+    color: var(--gold);
+}
+.tournoi-block-badge.t500 {
+    background: rgba(124,58,237,0.12);
+    border: 1px solid rgba(124,58,237,0.3);
+    color: var(--purple-light);
+}
+.tournoi-block-id { font-size: 10px; color: var(--text-dim); font-family: monospace; }
+.tournoi-block-right { text-align: right; }
+.tournoi-prize {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px; letter-spacing: 1px; line-height: 1;
+}
+.tournoi-block.t100 .tournoi-prize { color: var(--gold); }
+.tournoi-block.t500 .tournoi-prize { color: var(--purple-light); }
+.tournoi-status {
+    font-size: 11px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;
+}
+.tournoi-status.active { color: var(--success); }
+.tournoi-status.ended { color: var(--text-dim); }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.tournoi-status.active .status-dot { animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+.rank-rows {}
+
+.rank-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    position: relative;
+    border-left: 3px solid transparent;
+}
+.rank-row:last-child { border-bottom: none; }
+.rank-row.is-me { background: rgba(59,130,246,0.06); border-left-color: #3b82f6; }
+.rank-row.rank-1 { border-left-color: var(--gold); }
+.rank-row.rank-2 { border-left-color: #94a3b8; }
+.rank-row.rank-3 { border-left-color: #b47c3c; }
+.rank-row.separator {
+    border-top: 1px dashed rgba(255,255,255,0.08);
+    background: rgba(59,130,246,0.03);
+    border-left-color: #3b82f6;
+}
+
+.rank-pos {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px; min-width: 28px; text-align: center; color: var(--text-dim);
+}
+.rank-row.rank-1 .rank-pos { color: var(--gold); }
+.rank-row.rank-2 .rank-pos { color: #94a3b8; }
+.rank-row.rank-3 .rank-pos { color: #b47c3c; }
+.rank-row.is-me .rank-pos,
+.rank-row.separator .rank-pos { color: #60a5fa; }
+
+.rank-avatar {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(255,255,255,0.05);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 15px; color: var(--text-dim); flex-shrink: 0;
+}
+.rank-row.is-me .rank-avatar,
+.rank-row.separator .rank-avatar { background: rgba(59,130,246,0.12); color: #60a5fa; }
+.rank-row.rank-1 .rank-avatar { background: rgba(245,158,11,0.1); color: var(--gold); }
+
+.rank-info { flex: 1; min-width: 0; }
+.rank-name {
+    font-size: 13px; font-weight: 700;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.rank-row.is-me .rank-name,
+.rank-row.separator .rank-name { color: #60a5fa; }
+
+.rank-scores { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+.score-chip {
+    font-size: 10px; font-weight: 600;
+    padding: 2px 7px; border-radius: 6px;
+}
+.score-chip.reyel {
+    background: rgba(74,222,128,0.1); color: var(--success);
+    border: 1px solid rgba(74,222,128,0.2);
+}
+.score-chip.potansyel {
+    background: rgba(245,158,11,0.08); color: var(--gold);
+    border: 1px solid rgba(245,158,11,0.15);
+}
+.score-chip.pending {
+    background: rgba(100,116,139,0.1); color: var(--text-dim);
+    border: 1px solid rgba(100,116,139,0.15);
+}
+
+.deploy-btn {
+    font-size: 11px; font-weight: 700; color: var(--gold); cursor: pointer;
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.2);
+    border-radius: 8px; padding: 5px 10px;
+    white-space: nowrap; transition: all 0.2s; flex-shrink: 0;
+}
+.deploy-btn:hover { background: rgba(245,158,11,0.15); }
+
+.fiche-detail {
+    display: none;
+    background: rgba(0,0,0,0.25);
+    border-top: 1px solid rgba(255,255,255,0.04);
+    padding: 12px 18px 14px;
+}
+.fiche-detail.open { display: block; }
+.fiche-detail-title {
+    font-size: 11px; font-weight: 700; color: var(--text-dim);
+    letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px;
+}
+.fiche-match-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.04); gap: 8px;
+}
+.fiche-match-row:last-child { border-bottom: none; }
+.fiche-match-name { font-size: 12px; font-weight: 600; color: var(--text); }
+.fiche-match-choice { font-size: 11px; color: var(--gold); font-weight: 700; text-align: right; flex-shrink: 0; }
+
+.loading-state { text-align: center; padding: 50px 20px; color: var(--text-dim); }
+.loading-spinner {
+    width: 32px; height: 32px;
+    border: 3px solid rgba(245,158,11,0.15);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 14px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-state { text-align: center; padding: 50px 20px; color: var(--text-dim); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+
+<header>
+    <a href="chanpyon509.html" class="back-btn">←</a>
+    <span class="header-title">Klasman Tounwa</span>
+</header>
+
+<div class="tabs-wrap">
+    <button class="tab-btn active" onclick="switchTab('t100')">⚡ Rapid 100</button>
+    <button class="tab-btn elite" onclick="switchTab('t500')">💎 Elite 500</button>
+</div>
+
+<div class="main" id="mainContent">
+    <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <div>Chajman...</div>
+    </div>
+</div>
+
+<script>
+let currentUser = null;
+let currentTab = 't100';
+const _tournoiCache = {};
+
+const TOURNOI_TYPES = {
+    t100: { type: 'chanpyon509-t100', reward: 10000, label: '⚡ RAPID 100' },
+    t500: { type: 'chanpyon509-t500', reward: 50000, label: '💎 ELITE 500' }
+};
+
+function waitForFirebase(cb, tries) {
+    tries = tries || 0;
+    if (window.firebaseApp && window.firebaseApp.auth) {
+        window.firebaseApp.auth.onAuthStateChanged(function(user) {
+            currentUser = user;
+            cb();
+        });
+    } else if (tries < 20) {
+        setTimeout(function() { waitForFirebase(cb, tries + 1); }, 150);
+    } else {
+        cb();
+    }
+}
+
+waitForFirebase(function() { loadTab(currentTab); });
+
+function switchTab(tab) {
+    currentTab = tab;
+    var btns = document.querySelectorAll('.tab-btn');
+    btns[0].classList.toggle('active', tab === 't100');
+    btns[1].classList.toggle('active', tab === 't500');
+    loadTab(tab);
+}
+
+async function loadTab(tabKey) {
+    var main = document.getElementById('mainContent');
+    main.innerHTML = '<div class="loading-state"><div class="loading-spinner"></div><div>Chajman...</div></div>';
+
+    var config = TOURNOI_TYPES[tabKey];
+    var now = Date.now();
+    var cutoff = now - 24 * 60 * 60 * 1000;
+
+    try {
+        var snap = await window.firebaseApp.db.collection('tournaments')
+    .where('type', '==', config.type)
+    .get();
+
+        if (snap.empty) {
+            main.innerHTML = '<div class="empty-state"><div style="font-size:36px;margin-bottom:12px;">🏆</div><div>Pa gen tounwa ' + config.label + ' ankò</div></div>';
+            return;
+        }
+
+        var tournois = snap.docs
+            .map(function(d) { return Object.assign({ id: d.id }, d.data()); })
+            .filter(function(t) {
+                if (t.status === 'active') return true;
+                if (t.status === 'ended') {
+                    var endMs = t.endTime && t.endTime.seconds ? t.endTime.seconds * 1000 : 0;
+                    return endMs > cutoff;
+                }
+                return false;
+            });
+
+        if (tournois.length === 0) {
+            main.innerHTML = '<div class="empty-state"><div style="font-size:36px;margin-bottom:12px;">🏆</div><div>Pa gen tounwa aktif</div></div>';
+            return;
+        }
+
+        main.innerHTML = '';
+        for (var i = 0; i < tournois.length; i++) {
+            var block = await buildTournoiBlock(tournois[i], tabKey);
+            main.appendChild(block);
+        }
+
+    } catch(e) {
+        console.error(e);
+        main.innerHTML = '<div class="empty-state"><div>❌ Erè chajman — ' + (e.message || '') + '</div></div>';
+    }
+}
+
+async function buildTournoiBlock(tournoi, tabKey) {
+    var config = TOURNOI_TYPES[tabKey];
+    var isActive = tournoi.status === 'active';
+
+    // ✅ CACHE — 3 minutes par tournoi
+    var cacheKey = tournoi.id;
+    var now = Date.now();
+    var fichesData;
+    
+    if (_tournoiCache[cacheKey] && (now - _tournoiCache[cacheKey].ts) < 24 * 60 * 60 * 1000) {
+        fichesData = _tournoiCache[cacheKey].docs;
+    } else {
+        try {
+            var response = await fetch(
+                'https://ezipay-backend--jynnjaisy.replit.app/api/classement/' + tournoi.id
+            );
+            var json = await response.json();
+            fichesData = json.fiches || [];
+        } catch(e) {
+            console.error('Erreur classement Replit:', e);
+            fichesData = [];
+        }
+        _tournoiCache[cacheKey] = { docs: fichesData, ts: now };
+    }
+
+    var top5 = fichesData
+    .sort(function(a, b) {
+        // Si scoreTournoi existe, priorité à lui — sinon scorePotentiel
+        var scoreA = a.scoreTournoi != null ? a.scoreTournoi : -1;
+        var scoreB = b.scoreTournoi != null ? b.scoreTournoi : -1;
+        return scoreB - scoreA;
+    })
+        .slice(0, 5)
+        .map(function(f, i) { return Object.assign({}, f, { rank: i + 1 }); });
+
+    // Fiche du joueur
+    var myFiche = null;
+    var myInTop5 = false;
+    if (currentUser) {
+        myInTop5 = top5.some(function(f) { return f.userId === currentUser.uid; });
+        if (!myInTop5) {
+            myFiche = fichesData.find(function(f) {
+                return f.userId === currentUser.uid;
+            }) || null;
+        }
+    }
+
+    // Rang du joueur
+    var myRank = '—';
+    if (currentUser && myFiche) {
+        var myScore = myFiche.scorePotentiel || 0;
+        myRank = fichesData.filter(function(f) {
+            return (f.scorePotentiel || 0) > myScore;
+        }).length + 1;
+    }
+
+    var block = document.createElement('div');
+    block.className = 'tournoi-block ' + tabKey;
+
+    var idShort = tournoi.id.slice(0, 8).toUpperCase();
+    block.innerHTML =
+        '<div class="tournoi-block-header">' +
+            '<div class="tournoi-block-left">' +
+                '<span class="tournoi-block-badge ' + tabKey + '">' + config.label + '</span>' +
+                '<span class="tournoi-block-id">ID: ' + idShort + '</span>' +
+            '</div>' +
+            '<div class="tournoi-block-right">' +
+                '<div class="tournoi-prize">' + config.reward.toLocaleString('fr-FR') + ' Goud</div>' +
+                '<div class="tournoi-status ' + (isActive ? 'active' : 'ended') + '">' +
+                    '<span class="status-dot"></span>' +
+                    (isActive ? 'Aktif' : 'Fini') +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+        '<div class="rank-rows" id="rows-' + tournoi.id + '"></div>';
+
+    var rowsContainer = block.querySelector('#rows-' + tournoi.id);
+
+    var medals = ['🥇', '🥈', '🥉', '4', '5'];
+    var rankClasses = ['rank-1', 'rank-2', 'rank-3', '', ''];
+
+    top5.forEach(function(fiche, i) {
+        var isMe = currentUser && fiche.userId === currentUser.uid;
+        var initials = getInitials(fiche.username || 'J');
+        var scoreReyel = fiche.scoreTournoi != null
+            ? '<span class="score-chip reyel">✅ ' + formatScore(fiche.scoreTournoi) + ' pts</span>'
+            : '<span class="score-chip pending">Rezilta an kou</span>';
+        var scorePot = '<span class="score-chip potansyel">⚡ ' + formatScore(fiche.scorePotentiel) + ' pts max</span>';
+
+        var row = document.createElement('div');
+        row.className = 'rank-row ' + rankClasses[i] + (isMe ? ' is-me' : '');
+        row.innerHTML =
+            '<div class="rank-pos">' + medals[i] + '</div>' +
+            '<div class="rank-avatar">' + initials + '</div>' +
+            '<div class="rank-info">' +
+                '<div class="rank-name">' + (isMe ? '👤 ' : '') + fiche.username + (isMe ? ' (Ou)' : '') + '</div>' +
+                '<div class="rank-scores">' + scoreReyel + scorePot + '</div>' +
+            '</div>' +
+            (i === 0 ? '<button class="deploy-btn" onclick="toggleFiche(\'' + fiche.id + '\', this)">Wè Fich →</button>' : '');
+
+        rowsContainer.appendChild(row);
+
+        // Détail fiche #1
+        if (i === 0 && fiche.choices) {
+            var detail = document.createElement('div');
+            detail.className = 'fiche-detail';
+            detail.id = 'fiche-' + fiche.id;
+
+            var matchRows = '<div class="fiche-detail-title">Fich Gayan — Detay Chwa Yo</div>';
+            Object.values(fiche.choices).forEach(function(choice) {
+                if (!choice.matchName) return;
+                var allChoices = [];
+                if (choice.resultat) allChoices.push(choice.resultat);
+                if (choice.doublechance) allChoices.push('DC: ' + choice.doublechance);
+                if (choice.btts) allChoices.push('BTTS: ' + choice.btts);
+                if (choice.total) allChoices.push('Total: ' + choice.total);
+                if (choice.scoreexact) allChoices.push('Skor: ' + choice.scoreexact);
+                matchRows +=
+                    '<div class="fiche-match-row">' +
+                        '<div class="fiche-match-name">⚽ ' + choice.matchName + '</div>' +
+                        '<div class="fiche-match-choice">' + allChoices.join(' · ') + '</div>' +
+                    '</div>';
+            });
+
+            detail.innerHTML = matchRows;
+            rowsContainer.appendChild(detail);
+        }
+    });
+
+    // Ma fiche si absent du top 5
+    if (currentUser && myFiche && !myInTop5) {
+        var sep = document.createElement('div');
+        sep.className = 'rank-row separator';
+        var myInitials = getInitials(myFiche.username || 'M');
+        var myScoreReyel = myFiche.scoreTournoi != null
+            ? '<span class="score-chip reyel">✅ ' + formatScore(myFiche.scoreTournoi) + ' pts</span>'
+            : '<span class="score-chip pending">Rezilta an kou</span>';
+        sep.innerHTML =
+            '<div class="rank-pos">' + myRank + '</div>' +
+            '<div class="rank-avatar">' + myInitials + '</div>' +
+            '<div class="rank-info">' +
+                '<div class="rank-name">👤 Ou</div>' +
+                '<div class="rank-scores">' + myScoreReyel +
+                '<span class="score-chip potansyel">⚡ ' + formatScore(myFiche.scorePotentiel) + ' pts max</span>' +
+                '</div>' +
+            '</div>';
+        rowsContainer.appendChild(sep);
+    }
+
+    if (top5.length === 0 && !myFiche) {
+        rowsContainer.innerHTML = '<div class="empty-state" style="padding:24px;">Pa gen fich ankò</div>';
+    }
+
+    return block;
+}
+
+
+function toggleFiche(ficheId, btn) {
+    var detail = document.getElementById('fiche-' + ficheId);
+    if (!detail) return;
+    var isOpen = detail.classList.toggle('open');
+    btn.textContent = isOpen ? '← Fèmen' : 'Wè Fich →';
+}
+
+function getInitials(name) {
+    if (!name) return '?';
+    return name.split(' ').map(function(w) { return w[0]; }).join('').toUpperCase().slice(0, 2);
+}
+
+function formatScore(score) {
+    if (score == null) return '—';
+    return parseFloat(score).toLocaleString('fr-FR', { maximumFractionDigits: 2 });
+}
+</script>
+</body>
+</html>

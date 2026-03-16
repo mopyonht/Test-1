@@ -141,6 +141,22 @@
     <div class="header-user" id="userName">Chargement...</div>
 </header>
 
+<a href="chanpyon509.html" style="
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:38px;
+    height:38px;
+    background:rgba(245,166,35,0.12);
+    border:1px solid rgba(245,166,35,0.3);
+    border-radius:10px;
+    font-size:18px;
+    text-decoration:none;
+    transition:background 0.2s;
+" onmouseover="this.style.background='rgba(245,166,35,0.25)'"
+   onmouseout="this.style.background='rgba(245,166,35,0.12)'"
+>↩️</a>
+
 <div class="main">
     <div class="page-title">Fè yon depo</div>
     <div class="page-sub">Chwazi metòd pèman ou prefere</div>
@@ -205,7 +221,7 @@
             </p>
         </div>
 
-        <a class="btn btn-whatsapp" href="https://wa.me/50955750121?text=Bonswa%20Anti-Paryaj.%20Mw%20vle%20fè%20yon%20depo%20ak%20Natcash." target="_blank" rel="noopener noreferrer">
+        <a class="btn btn-whatsapp" href="https://wa.me/50934125103?text=Bonswa%20Anti-Paryaj.%20Mw%20vle%20fè%20yon%20depo%20ak%20Natcash." target="_blank" rel="noopener noreferrer">
             💬 Peye pa WhatsApp
         </a>
         <button class="btn btn-ghost" onclick="closeModal('modal-natcash')" style="margin-top:8px;">Fèmen</button>
@@ -235,14 +251,21 @@
     // ===== AUTH =====
     // Aucune lecture Firestore ici — user.email vient de Firebase Auth uniquement
     auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            currentUser = user;
-            document.getElementById('userName').textContent = user.email;
-            checkForPendingDeposit();
+    if (user) {
+        currentUser = user;
+        document.getElementById('userName').textContent = user.email;
+        checkForPendingDeposit();
+    } else {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('transaction_id')) {
+            setTimeout(() => {
+                if (!currentUser) window.location.href = 'anti-paryaj.html';
+            }, 5000);
         } else {
             window.location.href = 'chanpyon509.html';
         }
-    });
+    }
+});
 
     // ===== MESSAGES =====
     function showMessage(text, type) {
@@ -323,7 +346,7 @@
         const transactionId = urlParams.get('transaction_id');
 
         console.log('🔍 Paramètres URL:', { status, transactionId });
-
+        
         // Nettoyer l'URL EN PREMIER avant tout
     window.history.replaceState({}, document.title, window.location.pathname);
 
@@ -362,7 +385,7 @@
             if (data.success) {
                 showMessage(`✅ Depo ${data.amount} HTG konfime! Kont ou ajounen.`, 'success');
             } else {
-                showMessage('⚠️ ' + (data.message || 'Erreur de vérification'), 'error');
+                showMessage('🟢 ' + (data.message || 'Verifye balans ou kounye a'), 'error');
             }
         } catch (e) {
             console.error('❌ Erreur vérification:', e);
