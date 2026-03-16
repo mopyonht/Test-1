@@ -2323,6 +2323,170 @@ waitBody();
   document.body.style.overflow = 'hidden'; // Empêche le scroll pendant l'onboarding
 })();
 
+// ================= POPUP ANNONCE (1 seule fois, après 10s) =================
+(function showLegacyPopupOnce() {
+  // Vérifier si l'utilisateur a déjà vu le popup
+  if (localStorage.getItem('c509_legacy_popup_seen') === 'true') return;
+
+  // Attendre 10 secondes avant d'afficher
+  setTimeout(() => {
+    // Créer l'overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'legacy-popup-overlay';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 999999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'DM Sans', sans-serif;
+      animation: legacyFadeIn 0.3s ease;
+    `;
+
+    // Style d'animation (à ajouter dans le head)
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes legacyFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes legacyPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Contenu du popup
+    overlay.innerHTML = `
+      <div class="legacy-popup-container" style="
+        background: linear-gradient(145deg, #1e293b, #0f172a);
+        border: 2px solid #f59e0b;
+        border-radius: 32px;
+        max-width: 380px;
+        width: 90%;
+        padding: 30px 24px 28px;
+        box-shadow: 0 25px 50px -12px rgba(245,158,11,0.5);
+        text-align: center;
+        position: relative;
+        animation: legacyPulse 2s infinite ease-in-out;
+      ">
+        <!-- Icône décorative -->
+        <div style="
+          background: rgba(245,158,11,0.15);
+          width: 80px;
+          height: 80px;
+          border-radius: 60px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 18px;
+          border: 2px dashed #f59e0b;
+        ">
+          <span style="font-size: 42px;">📢</span>
+        </div>
+
+        <!-- Titre principal -->
+        <h2 style="
+          font-family: 'Bebas Neue', sans-serif;
+          font-size: 32px;
+          letter-spacing: 2px;
+          background: linear-gradient(135deg, #facc15, #f59e0b);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          margin-bottom: 12px;
+          line-height: 1.2;
+        ">
+          Tout fich ak Kredi<br>sou ansyen sistèm nan<br><span style="font-size: 38px;">toujou la ! !</span>
+        </h2>
+
+        <!-- Sous-titre -->
+        <p style="
+          color: #94a3b8;
+          font-size: 16px;
+          line-height: 1.6;
+          margin-bottom: 25px;
+          padding: 0 5px;
+          font-weight: 500;
+        ">
+          nap repibliye anyen sistèm nan<br>nan kèk jou ankò.
+        </p>
+
+        <!-- Message de remerciement -->
+        <div style="
+          background: rgba(74,222,128,0.08);
+          border-radius: 40px;
+          padding: 12px 16px;
+          margin-bottom: 25px;
+          border: 1px solid rgba(74,222,128,0.2);
+        ">
+          <span style="color: #4ade80; font-weight: 700; font-size: 15px;">
+            ✦ mèsi pou pasyans nou ✦
+          </span>
+        </div>
+
+        <!-- Bouton de fermeture -->
+        <button class="legacy-close-btn" style="
+          background: linear-gradient(90deg, #f59e0b, #d97706);
+          border: none;
+          color: #0f172a;
+          font-weight: 800;
+          font-size: 18px;
+          padding: 14px 30px;
+          border-radius: 60px;
+          cursor: pointer;
+          width: 100%;
+          max-width: 220px;
+          margin: 0 auto;
+          display: block;
+          transition: all 0.2s;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          box-shadow: 0 8px 20px rgba(245,158,11,0.4);
+          border: 1px solid #facc15;
+        ">
+          OK Mwen Konprann ✕
+        </button>
+
+        <!-- Petit rappel -->
+        <p style="color: #334155; font-size: 11px; margin-top: 18px;">
+          Mesaj sa a ap parèt yon sèl fwa
+        </p>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Gestionnaire de fermeture
+    const closeBtn = overlay.querySelector('.legacy-close-btn');
+    
+    function closePopup() {
+      overlay.style.opacity = '0';
+      setTimeout(() => {
+        overlay.remove();
+        document.body.style.overflow = 'auto';
+      }, 300);
+      localStorage.setItem('c509_legacy_popup_seen', 'true');
+    }
+
+    closeBtn.addEventListener('click', closePopup);
+    
+    // Fermeture possible en cliquant sur l'overlay (optionnel)
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closePopup();
+    });
+
+    // Bloquer le scroll pendant l'affichage
+    document.body.style.overflow = 'hidden';
+
+  }, 10000); // 10 secondes = 10000 millisecondes
+})();
 
 // Rafraîchir matchs toutes les 60s
 setInterval(() => displayMatches(), 60000);
