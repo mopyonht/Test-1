@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ht">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klasman Final — Chanpyon509</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap');
+:root{--gold:#f59e0b;--gold-light:#facc15;--bg:#080c14;--card:#111827;--border:rgba(245,158,11,0.15);--text:#f1f5f9;--text-dim:#64748b;--success:#4ade80;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:60px;}
+.bg-grid{position:fixed;inset:0;background-image:linear-gradient(rgba(245,158,11,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(245,158,11,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+.bg-glow{position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:600px;height:400px;background:radial-gradient(ellipse,rgba(245,158,11,0.07) 0%,transparent 70%);pointer-events:none;z-index:0;}
+header{position:sticky;top:0;z-index:100;background:rgba(8,12,20,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:14px;}
+.back-btn{width:36px;height:36px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:18px;text-decoration:none;}
+.header-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;background:linear-gradient(90deg,var(--gold),var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.header-badge{margin-left:auto;font-size:11px;font-weight:800;letter-spacing:1px;padding:4px 12px;border-radius:20px;background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);color:var(--success);}
+.main{position:relative;z-index:1;padding:20px;max-width:600px;margin:0 auto;}
+.winner-banner{background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(250,204,21,0.08));border:1px solid rgba(245,158,11,0.4);border-radius:20px;padding:24px 20px;margin-bottom:20px;text-align:center;position:relative;overflow:hidden;}
+.winner-banner::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(245,158,11,0.12),transparent 70%);}
+.winner-crown{font-size:40px;margin-bottom:8px;display:block;}
+.winner-label{font-size:11px;font-weight:800;letter-spacing:2px;color:var(--gold);margin-bottom:6px;}
+.winner-name{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:3px;background:linear-gradient(90deg,var(--gold),var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;margin-bottom:10px;}
+.winner-score{font-size:13px;font-weight:700;background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.25);color:var(--success);padding:5px 16px;border-radius:20px;display:inline-block;}
+.winner-prize{margin-top:14px;font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:var(--gold-light);}
+.winner-prize span{font-size:13px;font-weight:600;color:var(--text-dim);font-family:'DM Sans',sans-serif;letter-spacing:0;}
+.tournoi-block{background:var(--card);border:1px solid rgba(255,255,255,0.06);border-radius:18px;margin-bottom:20px;overflow:hidden;}
+.tournoi-block-header{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.02);}
+.tournoi-block-left{display:flex;flex-direction:column;gap:4px;}
+.tournoi-block-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:1px;padding:3px 10px;border-radius:20px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);color:var(--gold);}
+.tournoi-block-id{font-size:10px;color:var(--text-dim);font-family:monospace;}
+.tournoi-prize{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;line-height:1;color:var(--gold);}
+.tournoi-status{font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;margin-top:4px;color:var(--text-dim);}
+.status-dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+.rank-row{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,0.04);border-left:3px solid transparent;}
+.rank-row:last-child{border-bottom:none;}
+.rank-row.rank-1{border-left-color:var(--gold);background:rgba(245,158,11,0.03);}
+.rank-row.rank-2{border-left-color:#94a3b8;}
+.rank-row.rank-3{border-left-color:#b47c3c;}
+.rank-pos{font-family:'Bebas Neue',sans-serif;font-size:22px;min-width:28px;text-align:center;color:var(--text-dim);}
+.rank-row.rank-1 .rank-pos{color:var(--gold);}
+.rank-row.rank-2 .rank-pos{color:#94a3b8;}
+.rank-row.rank-3 .rank-pos{color:#b47c3c;}
+.rank-avatar{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--text-dim);flex-shrink:0;}
+.rank-row.rank-1 .rank-avatar{background:rgba(245,158,11,0.1);color:var(--gold);}
+.rank-info{flex:1;min-width:0;}
+.rank-name{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rank-scores{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;}
+.score-chip{font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px;}
+.score-chip.reyel{background:rgba(74,222,128,0.1);color:var(--success);border:1px solid rgba(74,222,128,0.2);}
+.deploy-btn{font-size:11px;font-weight:700;color:var(--gold);cursor:pointer;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:5px 10px;white-space:nowrap;transition:all 0.2s;flex-shrink:0;}
+.deploy-btn:hover{background:rgba(245,158,11,0.15);}
+.fiche-detail{display:none;background:rgba(0,0,0,0.25);border-top:1px solid rgba(255,255,255,0.04);padding:12px 18px 14px;}
+.fiche-detail.open{display:block;}
+.fiche-detail-title{font-size:11px;font-weight:700;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;}
+.fiche-match-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04);gap:8px;}
+.fiche-match-row:last-child{border-bottom:none;}
+.fiche-match-name{font-size:12px;font-weight:600;color:var(--text);}
+.fiche-match-choice{font-size:11px;color:var(--gold);font-weight:700;text-align:right;flex-shrink:0;}
+.section-title{font-size:11px;font-weight:800;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;padding:0 4px;margin-bottom:12px;margin-top:4px;}
+.official-note{background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15);border-radius:14px;padding:14px 18px;font-size:12px;color:#93c5fd;line-height:1.6;margin-bottom:20px;}
+.official-note strong{color:#60a5fa;}
+.divider{border:none;border-top:1px dashed rgba(255,255,255,0.06);margin:4px 18px;}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+
+<header>
+  <a href="chanpyon509.html" class="back-btn">&#8592;</a>
+  <div class="header-title">KLASMAN FINAL</div>
+  <div class="header-badge">&#10003; OFISYEL</div>
+</header>
+
+<div class="main">
+
+  <div class="winner-banner">
+    <span class="winner-crown">&#127942;</span>
+    <div class="winner-label">Chanpyon Tounwa a</div>
+    <div class="winner-name">JYNN</div>
+    <div class="winner-score">&#10003; 38 283 237.04 pts</div>
+    <div class="winner-prize">10 000 Goud <span>pri</span></div>
+  </div>
+
+  <div class="official-note">
+    <strong>&#128203; Rezilta ofisyel</strong> &#8212; Klasman sa a kalkile sou baz tout rezilta match yo. Skor yo definitif e pa ka chanje.
+  </div>
+
+  <div class="section-title">Top 5 &#8212; Meye Jwe Yo</div>
+  <div class="tournoi-block">
+    <div class="tournoi-block-header">
+      <div class="tournoi-block-left">
+        <span class="tournoi-block-badge">&#127942; CHANPYON509 T100</span>
+        <span class="tournoi-block-id">REZILTA FINAL</span>
+      </div>
+      <div class="tournoi-block-right">
+        <div class="tournoi-prize">10 000 Goud</div>
+        <div class="tournoi-status"><span class="status-dot"></span>Fini</div>
+      </div>
+    </div>
+
+    <div class="rank-row rank-1">
+      <div class="rank-pos">&#127945;</div>
+      <div class="rank-avatar">JY</div>
+      <div class="rank-info">
+        <div class="rank-name">Jynn</div>
+        <div class="rank-scores"><span class="score-chip reyel">&#10003; 38 283 237.04 pts</span></div>
+      </div>
+      <button class="deploy-btn" onclick="toggleFiche(this)">We Fich &#8594;</button>
+    </div>
+
+    <div class="fiche-detail" id="fiche-jynn">
+      <div class="fiche-detail-title">Fich Gayan &#8212; Detay Chwa Yo</div>
+      <div class="fiche-match-row">
+        <div class="fiche-match-name">&#9917; Barcelone vs Rayo Vallecano</div>
+        <div class="fiche-match-choice">1 &middot; BTTS: Non &middot; Total: &gt;0.5 &middot; Skor: 1-0 / 2-0</div>
+      </div>
+      <div class="fiche-match-row">
+        <div class="fiche-match-name">&#9917; Aston Villa vs West Ham</div>
+        <div class="fiche-match-choice">1 &middot; BTTS: Non &middot; Total: &gt;1.5 &middot; Skor: 1-0 / 2-0</div>
+      </div>
+      <div class="fiche-match-row">
+        <div class="fiche-match-name">&#9917; Arsenal vs Leverkusen</div>
+        <div class="fiche-match-choice">1 &middot; BTTS: Non &middot; Total: &gt;1.5 &middot; Skor: 1-0 / 2-0</div>
+      </div>
+      <div class="fiche-match-row">
+        <div class="fiche-match-name">&#9917; Manchester City vs Real Madrid</div>
+        <div class="fiche-match-choice">1 &middot; BTTS: Wi &middot; Total: &gt;3.5 &middot; Skor: 2-1 / 1-2</div>
+      </div>
+      <div class="fiche-match-row">
+        <div class="fiche-match-name">&#9917; Arsenal vs Manchester City</div>
+        <div class="fiche-match-choice">2 &middot; BTTS: Non &middot; Total: &gt;1.5 &middot; Skor: 0-1 / 0-2</div>
+      </div>
+    </div>
+
+    <div class="rank-row rank-2">
+      <div class="rank-pos">&#127946;</div>
+      <div class="rank-avatar">DR</div>
+      <div class="rank-info">
+        <div class="rank-name">DonReginald</div>
+        <div class="rank-scores"><span class="score-chip reyel">&#10003; 35 242 373.04 pts</span></div>
+      </div>
+    </div>
+
+    <div class="rank-row rank-3">
+      <div class="rank-pos">&#127947;</div>
+      <div class="rank-avatar">DR</div>
+      <div class="rank-info">
+        <div class="rank-name">DonReginald</div>
+        <div class="rank-scores"><span class="score-chip reyel">&#10003; 268.60 pts</span></div>
+      </div>
+    </div>
+
+    <div class="rank-row">
+      <div class="rank-pos">4</div>
+      <div class="rank-avatar">DR</div>
+      <div class="rank-info">
+        <div class="rank-name">DonReginald</div>
+        <div class="rank-scores"><span class="score-chip reyel">&#10003; 196.95 pts</span></div>
+      </div>
+    </div>
+
+    <div class="rank-row">
+      <div class="rank-pos">5</div>
+      <div class="rank-avatar">CH</div>
+      <div class="rank-info">
+        <div class="rank-name">Charly</div>
+        <div class="rank-scores"><span class="score-chip reyel">&#10003; 103.07 pts</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Klasman Konplet &#8212; 48 Jwe</div>
+  <div class="tournoi-block">
+    <div id="full-rows"></div>
+  </div>
+
+</div>
+
+<script>
+function toggleFiche(btn) {
+  var d = document.getElementById('fiche-jynn');
+  var open = d.classList.toggle('open');
+  btn.textContent = open ? '\u2190 Femen' : 'We Fich \u2192';
+}
+function gi(n) {
+  return n.trim().split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2)||'?';
+}
+var data=[
+  {p:1, n:'Jynn',                 s:'38 283 237.04'},
+  {p:2, n:'DonReginald',          s:'35 242 373.04'},
+  {p:3, n:'DonReginald',          s:'268.60'},
+  {p:4, n:'DonReginald',          s:'196.95'},
+  {p:5, n:'Charly',               s:'103.07'},
+  {p:6, n:'DonReginald',          s:'93.79'},
+  {p:7, n:'DonReginald',          s:'56.32'},
+  {p:8, n:'Jw\u00e8',             s:'55.36'},
+  {p:9, n:'DonReginald',          s:'26.43'},
+  {p:10,n:'Dezo',                 s:'21.30'},
+  {p:11,n:'DonReginald',          s:'21.27'},
+  {p:12,n:'Charles',              s:'16.36'},
+  {p:13,n:'Dezo',                 s:'14.52'},
+  {p:14,n:'DonReginald',          s:'12.58'},
+  {p:15,n:'Alouidor',             s:'11.47'},
+  {p:16,n:'Dezo',                 s:'11.47'},
+  {p:17,n:'romilusjephteolivier', s:'10.17'},
+  {p:18,n:'Herby',                s:'9.24'},
+  {p:19,n:'Petit',                s:'7.44'},
+  {p:20,n:'Chiwawa',              s:'6.00'},
+  {p:21,n:'Stanley YDAL',         s:'5.71'},
+  {p:22,n:'Jynn',                 s:'5.71'},
+  {p:23,n:'Charles',              s:'4.40'},
+  {p:24,n:'Adam Emmanuel',        s:'4.20'},
+  {p:25,n:'Adiguin',              s:'4.20'},
+  {p:26,n:'Surlin',               s:'3.90'},
+  {p:27,n:'Wizzy2385',            s:'3.38'},
+  {p:28,n:'Roosnar007',           s:'3.38'},
+  {p:29,n:'DonReginald',          s:'2.60'},
+  {p:30,n:'Orij',                 s:'2.00'},
+  {p:31,n:'Fedler king',          s:'2.00'},
+  {p:32,n:'Bradjeston jasmin',    s:'2.00'},
+  {p:33,n:'Bradjeston jasmin',    s:'2.00'},
+  {p:34,n:'Jw\u00e8',             s:'2.00'},
+  {p:35,n:'Jynn',                 s:'2.00'},
+  {p:36,n:'Jw\u00e8',             s:'2.00'},
+  {p:37,n:'Jynn',                 s:'2.00'},
+  {p:38,n:'Jynn',                 s:'2.00'},
+  {p:39,n:'Garry',                s:'2.00'},
+  {p:40,n:'Bradjeston jasmin',    s:'2.00'},
+  {p:41,n:'Jynn',                 s:'2.00'},
+  {p:42,n:'Jean Ken Elma',        s:'2.00'},
+  {p:43,n:'Jynn',                 s:'2.00'},
+  {p:44,n:'Jynn',                 s:'2.00'},
+  {p:45,n:'Samuel',               s:'2.00'},
+  {p:46,n:'Jynn',                 s:'2.00'},
+  {p:47,n:'Jw\u00e8',             s:'2.00'},
+  {p:48,n:'Samuel',               s:'2.00'}
+];
+var medals={1:'&#127945;',2:'&#127946;',3:'&#127947;'};
+var c=document.getElementById('full-rows');
+data.forEach(function(j,i){
+  var row=document.createElement('div');
+  row.className='rank-row'+(j.p===1?' rank-1':j.p===2?' rank-2':j.p===3?' rank-3':'');
+  row.innerHTML='<div class="rank-pos">'+(medals[j.p]||j.p)+'</div>'+
+    '<div class="rank-avatar">'+gi(j.n)+'</div>'+
+    '<div class="rank-info"><div class="rank-name">'+j.n+'</div>'+
+    '<div class="rank-scores"><span class="score-chip reyel">&#10003; '+j.s+' pts</span></div></div>';
+  c.appendChild(row);
+  if(i<data.length-1){var hr=document.createElement('div');hr.className='divider';c.appendChild(hr);}
+});
+</script>
+</body>
+</html>
