@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="ht">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800;900&display=swap" rel="stylesheet">
+    <title>Anti-Paryaj</title>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="firebaseConfig.js"></script>
+
+    <style>
+        :root {
+            --bg: #0b1120;
+            --bg2: #131c2e;
+            --card: #1a2338;
+            --border: rgba(245,158,11,0.25);
+            --text: #f1f5f9;
+            --text-secondary: #7a8fa6;
+            --success: #4ade80;
+            --danger: #ef4444;
+            --gold: #f59e0b;
+            --gold2: #facc15;
+            --rouge: #e8001d;
+            --bottom-h: 68px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Montserrat', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: calc(var(--bottom-h) + 16px);
+            overflow-x: hidden;
+        }
+
+        /* ===================== INTRO ===================== */
+        #intro {
+            position: fixed; inset: 0; z-index: 9999;
+            background: #080e1a;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            animation: introFadeOut 0.7s ease-in-out 4s forwards;
+        }
+        @keyframes introFadeOut {
+            to { opacity: 0; pointer-events: none; }
+        }
+
+.intro-img-wrap {
+    width: 100%; height: 100%;
+    animation: introPulse 2s ease-in-out infinite, introReveal 0.8s ease-out;
+}
+        @keyframes introReveal {
+            from { opacity: 0; transform: scale(0.85); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+        @keyframes introPulse {
+            0%,100% { filter: drop-shadow(0 0 18px rgba(245,158,11,0.4)); }
+            50%      { filter: drop-shadow(0 0 38px rgba(245,158,11,0.75)); }
+        }
+        .intro-img-wrap img {
+            width: 100%; height: 100%; object-fit: contain; border-radius: 20px;
+        }
+
+        .intro-title {
+            font-size: 28px; font-weight: 900; color: var(--text);
+            margin-top: 24px; letter-spacing: -0.5px;
+            animation: introReveal 0.8s ease-out 0.3s both;
+        }
+        .intro-title span {
+            background: linear-gradient(90deg, #f59e0b, #facc15);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .intro-sub {
+            font-size: 13px; color: var(--text-secondary);
+            margin-top: 8px; letter-spacing: 0.5px;
+            animation: introReveal 0.8s ease-out 0.5s both;
+        }
+
+        .intro-dots {
+            display: flex; gap: 8px; margin-top: 40px;
+            animation: introReveal 0.8s ease-out 0.7s both;
+        }
+        .intro-dots span {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: rgba(245,158,11,0.3);
+            animation: dotAnim 1.2s ease-in-out infinite;
+        }
+        .intro-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .intro-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes dotAnim {
+            0%,100% { background: rgba(245,158,11,0.3); transform: scale(1); }
+            50%      { background: #f59e0b; transform: scale(1.4); }
+        }
+
+        /* ===================== HEADER ===================== */
+        header {
+            position: sticky; top: 0; z-index: 100;
+            background: var(--bg2);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+        }
+
+        .menu-icon { display:flex; flex-direction:column; gap:5px; cursor:pointer; padding:4px; }
+        .menu-icon .line { width:22px; height:2px; background:var(--gold); border-radius:2px; }
+
+        .logo {
+            font-size: 20px; font-weight: 900;
+            background: linear-gradient(90deg, #f59e0b, #facc15);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .profile-icon {
+            width: 36px; height: 36px;
+            background: rgba(245,158,11,0.12);
+            border: 1.5px solid var(--border); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: var(--gold);
+        }
+        .profile-icon svg { width:18px; height:18px; }
+
+        /* ===================== IMAGE SLIDER ===================== */
+        .slider-wrap {
+            position: relative; overflow: hidden;
+            height: 160px;
+            background: #080e1a;
+        }
+        .slides {
+            display: flex; height: 100%;
+            transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+        }
+        .slide {
+            min-width: 100%; height: 100%;
+            position: relative; overflow: hidden;
+        }
+        .slide-bg {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+        }
+        /* Slide 1 — Mode Solo */
+        .slide-1 .slide-bg {
+            background: linear-gradient(135deg, #1a0505 0%, #2d0a0a 50%, #0b1120 100%);
+        }
+        /* Slide 2 — Tounwa */
+        .slide-2 .slide-bg {
+            background: linear-gradient(135deg, #0d1a35 0%, #1a2d4a 50%, #0b1120 100%);
+        }
+        /* Slide 3 — Bonus */
+        .slide-3 .slide-bg {
+            background: linear-gradient(135deg, #1a1205 0%, #2d2005 50%, #0b1120 100%);
+        }
+
+        .slide-content {
+            position: relative; z-index: 2;
+            padding: 0 24px; width: 100%;
+        }
+        .slide-badge {
+            display: inline-block;
+            font-size: 9px; font-weight: 800; letter-spacing: 1.5px;
+            text-transform: uppercase; padding: 3px 10px;
+            border-radius: 20px; margin-bottom: 10px;
+        }
+        .slide-1 .slide-badge { background: rgba(232,0,29,0.2); color: #ff4d6d; border: 1px solid rgba(232,0,29,0.35); }
+        .slide-2 .slide-badge { background: rgba(245,158,11,0.2); color: var(--gold); border: 1px solid var(--border); }
+        .slide-3 .slide-badge { background: rgba(74,222,128,0.15); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+
+        .slide-title {
+            font-size: 22px; font-weight: 900; color: #fff;
+            line-height: 1.2; margin-bottom: 6px;
+        }
+        .slide-title em { font-style: normal; }
+        .slide-1 .slide-title em { color: #ff4d6d; }
+        .slide-2 .slide-title em { color: var(--gold2); }
+        .slide-3 .slide-title em { color: #4ade80; }
+
+        .slide-sub { font-size: 11px; color: rgba(255,255,255,0.5); line-height: 1.5; }
+
+        .slide-deco {
+            position: absolute; right: 20px; top: 50%;
+            transform: translateY(-50%);
+            font-size: 56px; opacity: 0.12;
+        }
+
+        .slider-dots {
+            display: flex; justify-content: center; gap: 6px;
+            padding: 10px 0 6px;
+            background: var(--bg);
+        }
+        .slider-dots span {
+            width: 5px; height: 5px; border-radius: 50%;
+            background: rgba(255,255,255,0.2); cursor: pointer;
+            transition: all 0.3s;
+        }
+        .slider-dots span.active { background: var(--gold); width: 16px; border-radius: 3px; }
+
+        /* ===================== MAIN CONTENT ===================== */
+        .container { padding: 0 14px; max-width: 600px; margin: 0 auto; }
+
+        /* ===================== SECTION LABEL ===================== */
+        .section-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 18px 0 10px;
+        }
+        .section-label {
+            font-size: 11px; font-weight: 800;
+            color: var(--text-secondary); letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        .section-link {
+            font-size: 11px; font-weight: 700; color: var(--gold);
+            cursor: pointer; text-decoration: none;
+        }
+
+        /* ===================== DERNIERS GAGNANTS ===================== */
+        .winners-scroll {
+            display: flex; gap: 10px; overflow-x: auto;
+            padding-bottom: 4px; margin-bottom: 4px;
+            scrollbar-width: none;
+        }
+        .winners-scroll::-webkit-scrollbar { display: none; }
+
+        .winner-card {
+            min-width: 200px;
+            background: var(--card);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px; padding: 12px 14px;
+            display: flex; align-items: center; gap: 10px;
+            flex-shrink: 0;
+        }
+        .winner-avatar {
+            width: 38px; height: 38px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0;
+        }
+        .winner-avatar.solo { background: rgba(232,0,29,0.12); }
+        .winner-avatar.tounwa { background: rgba(245,158,11,0.12); }
+
+        .winner-info { flex: 1; min-width: 0; }
+        .winner-amount {
+            font-size: 16px; font-weight: 900; color: var(--gold2);
+            line-height: 1.1; margin-bottom: 3px;
+        }
+        .winner-name {
+            font-size: 11px; color: var(--text-secondary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .winner-name del { color: rgba(255,255,255,0.25); }
+        .winner-meta {
+            font-size: 10px; color: rgba(255,255,255,0.2);
+            margin-top: 2px;
+        }
+        .winner-mode {
+            font-size: 9px; font-weight: 800; letter-spacing: 0.8px;
+            text-transform: uppercase; padding: 2px 7px; border-radius: 20px;
+            flex-shrink: 0;
+        }
+        .winner-mode.solo { background: rgba(232,0,29,0.15); color: #ff4d6d; }
+        .winner-mode.tounwa { background: rgba(245,158,11,0.15); color: var(--gold); }
+
+        /* ===================== SOLO CARD ===================== */
+        .solo-card {
+            background: linear-gradient(135deg, #0f0505 0%, #1a0a0a 60%, #0f172a 100%);
+            border: 1px solid rgba(232,0,29,0.3);
+            border-radius: 16px; overflow: hidden;
+            position: relative; cursor: pointer;
+            transition: transform 0.18s;
+            animation: soloGlow 3s ease-in-out infinite;
+            margin-bottom: 6px;
+        }
+        @keyframes soloGlow {
+            0%,100% { box-shadow: 0 0 14px rgba(232,0,29,0.15); }
+            50%      { box-shadow: 0 0 30px rgba(232,0,29,0.38); }
+        }
+        .solo-card:active { transform: scale(0.99); }
+        .solo-card::before {
+            content: '';
+            position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(232,0,29,0.06), transparent);
+            animation: shimmer 2.5s ease-in-out infinite;
+            pointer-events: none; z-index: 1;
+        }
+        @keyframes shimmer { 0%{left:-100%;} 100%{left:250%;} }
+
+        .solo-inner { padding: 16px; position: relative; z-index: 2; }
+        .solo-top {
+            display: flex; align-items: flex-start;
+            justify-content: space-between; margin-bottom: 12px;
+        }
+        .solo-badge {
+            background: rgba(232,0,29,0.15); border: 1px solid rgba(232,0,29,0.35);
+            color: #ff4d6d; font-size: 9px; font-weight: 800;
+            padding: 3px 9px; border-radius: 20px;
+            letter-spacing: 1px; text-transform: uppercase;
+        }
+        .solo-prize-wrap { text-align: right; }
+        .solo-prize-label { font-size: 9px; color: var(--text-secondary); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 1px; }
+        .solo-prize {
+            font-size: 24px; font-weight: 900; color: var(--gold2); line-height: 1;
+            animation: prizeFlash 2.5s ease-in-out infinite;
+        }
+        @keyframes prizeFlash {
+            0%,100% { color: #facc15; }
+            50%      { color: #fff; text-shadow: 0 0 16px rgba(250,204,21,0.8); }
+        }
+        .solo-prize span { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+
+        .solo-headline {
+            font-size: 14px; font-weight: 900; color: var(--text);
+            line-height: 1.35; margin-bottom: 5px;
+        }
+        .solo-headline em { font-style: normal; color: #facc15; }
+        .solo-sub { font-size: 11px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px; }
+
+        .solo-footer { display: flex; align-items: center; justify-content: space-between; }
+        .solo-meta { display: flex; gap: 10px; }
+        .solo-meta-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-secondary); font-weight: 600; }
+        .solo-meta-item strong { color: var(--text); }
+
+        .solo-btn {
+            background: linear-gradient(135deg, #e8001d, #b30017);
+            color: #fff; border: none; padding: 9px 16px;
+            border-radius: 9px; font-size: 12px; font-weight: 800;
+            cursor: pointer; box-shadow: 0 4px 14px rgba(232,0,29,0.35);
+            transition: all 0.2s; white-space: nowrap;
+            display: flex; align-items: center; gap: 5px; font-family: inherit;
+        }
+        .solo-btn-arrow { font-size: 14px; animation: arrowBounce 0.9s ease-in-out infinite; }
+        @keyframes arrowBounce { 0%,100%{transform:translateX(0);} 50%{transform:translateX(4px);} }
+
+        /* ===================== TOUNWA CARDS ===================== */
+        .tournoi-card {
+            background: linear-gradient(135deg, #0a0f1a, #0d1f35, #0f1a0a);
+            border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
+            margin-bottom: 6px;
+            animation: tournoiGlow 3s ease-in-out infinite;
+        }
+        @keyframes tournoiGlow {
+            0%,100% { box-shadow: 0 0 10px rgba(245,158,11,0.1); }
+            50%      { box-shadow: 0 0 24px rgba(245,158,11,0.3); }
+        }
+        .tournoi-inner { padding: 14px 16px; }
+        .tournoi-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        .tournoi-badge {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff; font-size: 9px; font-weight: 800;
+            padding: 3px 9px; border-radius: 20px; letter-spacing: 0.5px;
+        }
+        .tournoi-badge.elite { background: linear-gradient(135deg, #7c3aed, #6d28d9); }
+        .tournoi-timer { font-size: 12px; font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums; }
+        .tournoi-prize { font-size: 26px; font-weight: 900; color: var(--gold2); line-height: 1; margin-bottom: 5px; }
+        .tournoi-prize span { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+        .tournoi-meta { display: flex; gap: 10px; font-size: 11px; color: var(--text-secondary); margin-bottom: 12px; flex-wrap: wrap; }
+        .btn-join {
+            width: 100%; padding: 11px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff; border: none; border-radius: 9px;
+            font-size: 13px; font-weight: 800; cursor: pointer; font-family: inherit;
+        }
+        .tournoi-divider { height: 1px; background: rgba(255,255,255,0.05); }
+
+        /* ===================== BOTTOM NAV ===================== */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+            background: var(--bg2);
+            border-top: 1px solid rgba(255,255,255,0.07);
+            display: flex; height: var(--bottom-h);
+            padding-bottom: env(safe-area-inset-bottom, 0);
+        }
+        .nav-item {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 4px;
+            cursor: pointer; transition: opacity 0.15s;
+            padding: 8px 0;
+            border: none; background: none;
+        }
+        .nav-item:active { opacity: 0.6; }
+        .nav-icon { font-size: 22px; line-height: 1; }
+        .nav-label {
+            font-size: 9px; font-weight: 800; letter-spacing: 0.5px;
+            text-transform: uppercase; color: var(--text-secondary);
+            font-family: 'Montserrat', sans-serif;
+        }
+        .nav-item.active .nav-label { color: var(--gold); }
+        .nav-item.active .nav-icon { filter: drop-shadow(0 0 4px rgba(245,158,11,0.6)); }
+
+        /* ===================== TOAST ===================== */
+        .toast {
+            position: fixed; top: 45%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            background: var(--card); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px; padding: 14px 20px;
+            font-size: 14px; font-weight: 600; color: var(--text);
+            z-index: 9999; opacity: 0; transition: all 0.3s;
+            pointer-events: none; text-align: center; max-width: 280px;
+        }
+        .toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+        /* ===================== MODAL / AUTH ===================== */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 300;
+            background: rgba(0,0,0,0.85);
+            display: none; align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal-overlay.show { display: flex; }
+
+        .auth-modal {
+            background: var(--card); border-radius: 20px;
+            padding: 28px 22px; width: 100%; max-width: 400px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .auth-title { font-size: 20px; font-weight: 900; color: var(--gold); text-align: center; margin-bottom: 20px; }
+        .auth-form { display: flex; flex-direction: column; gap: 14px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+        .form-group input {
+            padding: 12px 14px; background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+            color: var(--text); font-size: 14px; outline: none; font-family: inherit;
+        }
+        .form-group input:focus { border-color: var(--gold); }
+        .btn-auth {
+            padding: 13px; background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff; border: none; border-radius: 10px;
+            font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit;
+        }
+        .auth-switch { font-size: 13px; color: var(--text-secondary); text-align: center; margin-top: 14px; }
+        .auth-switch span { color: var(--gold); font-weight: 700; cursor: pointer; }
+
+/* ===================== PROFILE PANEL ===================== */
+        .side-panel { position: fixed; inset: 0; z-index: 250; background: rgba(0,0,0,0.7); display: none; }
+        .side-panel.show { display: block; }
+        .side-panel-inner {
+            position: absolute; top: 0; right: 0;
+            width: 85%; max-width: 340px; height: 100%;
+            background: var(--bg2); padding: 24px 20px; overflow-y: auto;
+            border-left: 1px solid rgba(255,255,255,0.06);
+        }
+        .profile-name { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+        .profile-email { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+        .profile-balance {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            border: 1px solid var(--border); border-radius: 14px;
+            padding: 16px; margin-bottom: 16px; text-align: center;
+        }
+        .balance-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .balance-amount { font-size: 32px; font-weight: 900; color: var(--gold); line-height: 1.2; }
+        .balance-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+        .btn-deposit {
+            width: 100%; padding: 13px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff; border: none; border-radius: 10px;
+            font-size: 14px; font-weight: 700; cursor: pointer;
+            margin-bottom: 10px; font-family: inherit;
+        }
+        .btn-logout {
+            width: 100%; padding: 11px;
+            background: rgba(239,68,68,0.1); color: var(--danger);
+            border: 1px solid rgba(239,68,68,0.3); border-radius: 10px;
+            font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit;
+        }
+
+        /* ===================== LEFT MENU ===================== */
+        .menu-modal {
+            position: fixed; top: 0; left: 0;
+            width: 80%; max-width: 300px; height: 100%;
+            background: var(--bg2); z-index: 400;
+            padding: 24px 20px; overflow-y: auto;
+            border-right: 1px solid rgba(255,255,255,0.07);
+            animation: slideIn 0.25s cubic-bezier(0.16,1,0.3,1);
+        }
+        @keyframes slideIn { from{transform:translateX(-100%);} to{transform:translateX(0);} }
+        .menu-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+        .menu-logo {
+            font-size: 18px; font-weight: 900;
+            background: linear-gradient(90deg, #f59e0b, #facc15);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .menu-close { background:none; border:none; color:var(--text-secondary); font-size:18px; cursor:pointer; }
+        .menu-user {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            border: 1px solid var(--border); border-radius: 12px;
+            padding: 14px; margin-bottom: 20px;
+        }
+        .menu-user-name { font-size: 15px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+        .menu-user-kredi { font-size: 22px; font-weight: 900; color: var(--gold); }
+        .menu-nav { display:flex; flex-direction:column; gap:4px; margin-bottom:8px; }
+        .menu-item {
+            display:flex; align-items:center; gap:12px;
+            padding:13px 12px; border-radius:10px; cursor:pointer;
+            transition:background 0.15s;
+        }
+        .menu-item:hover { background:rgba(255,255,255,0.05); }
+        .menu-item.danger .menu-item-label { color:var(--danger); }
+        .menu-item-icon { font-size:18px; width:24px; text-align:center; }
+        .menu-item-label { flex:1; font-size:14px; font-weight:700; color:var(--text); }
+        .menu-item-arrow { font-size:14px; color:var(--text-secondary); }
+        .menu-divider { height:1px; background:rgba(255,255,255,0.06); margin:8px 0; }
+
+        /* ===================== SCORES TAB PLACEHOLDER ===================== */
+        #tab-scores { display: none; padding: 14px; }
+        .scores-placeholder {
+            background: var(--card);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px; padding: 28px 20px;
+            text-align: center; color: var(--text-secondary);
+            font-size: 13px;
+        }
+        .scores-placeholder .scores-icon { font-size: 36px; margin-bottom: 12px; }
+
+        /* ===================== PAGE SECTIONS ===================== */
+        .tab-section { display: none; }
+        .tab-section.active { display: block; }
+        
+        .slide-4 .slide-bg {
+    background: linear-gradient(135deg, #0a1a0a 0%, #1a3a1a 50%, #0b1120 100%);
+}
+.slide-4 .slide-badge {
+    background: rgba(74,222,128,0.15); color: #4ade80;
+    border: 1px solid rgba(74,222,128,0.3);
+}
+.slide-4 .slide-title em { color: #4ade80; }
+
+/* Style des modales plein écran */
+.full-modal-overlay {
+    position: fixed; 
+    top: 0; left: 0; 
+    width: 100%; height: 100%;
+    background: #0b1120; 
+    z-index: 99999; /* Devant tout le monde */
+    flex-direction: column; 
+    display: none;
+}
+.modal-header-statique {
+    padding: 20px; 
+    background: #131c2e; 
+    border-bottom: 1px solid rgba(245,158,11,0.2);
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+}
+.close-btn-statique { 
+    background: none; border: none; color: #7a8fa6; 
+    font-size: 32px; cursor: pointer; padding: 10px;
+}
+.modal-body-statique { 
+    flex: 1; padding: 25px; overflow-y: auto; 
+    color: #f1f5f9; font-family: 'Montserrat', sans-serif; 
+}
+.premium-card-statique { 
+    background: #1a2338; padding: 20px; border-radius: 15px; 
+    border: 1px solid rgba(245,158,11,0.2); margin-bottom: 20px; 
+}
+.gold-txt { color: #f59e0b; font-weight: 900; }
+
+    </style>
+</head>
+<body>
+
+<!-- ===== INTRO ===== -->
+<div id="intro">
+    <div class="intro-img-wrap" style="position:relative;">
+    <img src="intro.png" alt="Anti-Paryaj" style="width:100%; height:100%; object-fit:cover; border-radius:0;">
+    <div style="
+        position:absolute; bottom:0; left:0; right:0;
+        background:linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
+        border-radius:0 0 20px 20px;
+        padding:24px 18px 18px;
+        text-align:center;
+    ">
+        <div style="font-size:22px; font-weight:900; color:#fff; letter-spacing:-0.5px;">
+            <span style="background:linear-gradient(90deg,#f59e0b,#facc15); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">Anti-Paryaj</span>
+        </div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.65); margin-top:4px; letter-spacing:0.5px;">
+            Jwe sou saw konnen
+        </div>
+    </div>
+</div>
+    <div class="intro-dots">
+        <span></span><span></span><span></span>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<!-- ===== HEADER ===== -->
+<header>
+    <div class="menu-icon">
+        <div class="line"></div><div class="line"></div><div class="line"></div>
+    </div>
+    <h1 class="logo">Anti-Paryaj</h1>
+    <div class="profile-icon" id="profileBtn">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+        </svg>
+    </div>
+</header>
+
+<!-- ===== IMAGE SLIDER ===== -->
+<div class="slider-wrap">
+    <div class="slides" id="slides">
+        <div class="slide slide-1">
+            <div class="slide-bg">
+                <div class="slide-content">
+                    <div class="slide-badge">⚡ Disponib kounye a</div>
+                    <div class="slide-title">Jwe <em>Solo</em><br>jiska 25 000 G</div>
+                    <div class="slide-sub">Konesans ou. Lajan ou.</div>
+                </div>
+            </div>
+            <div class="slide-deco">⚽</div>
+        </div>
+        <div class="slide slide-2">
+            <div class="slide-bg">
+                <div class="slide-content">
+                    <div class="slide-badge">🏆 Bientôt</div>
+                    <div class="slide-title">Tounwa <em>Chanpyon</em><br>50 000 Goud</div>
+                    <div class="slide-sub">500 patisipan. Yon sèl gagnyan.</div>
+                </div>
+            </div>
+            <div class="slide-deco">🏆</div>
+        </div>
+        <div class="slide slide-3">
+            <div class="slide-bg">
+                <div class="slide-content">
+                    <div class="slide-badge">🎁 Bonus</div>
+                    <div class="slide-title">150 Goud <em>Gratis</em><br>pou tout moun</div>
+                    <div class="slide-sub">Enskri kounye a. Jwe san risk.</div>
+                </div>
+            </div>
+            <div class="slide-deco">💰</div>
+        </div>
+        <div class="slide slide-4">
+            <div class="slide-bg">
+                <div class="slide-content">
+                    <div class="slide-badge">💎 Ofèt Espesyal</div>
+                    <div class="slide-title">50% Bonus <em>sou chak Depo !</em></div>
+                    <div class="slide-sub">Depi w fè depo wap jwenn plis kòb sou kont pou w jwe pi plis.</div>
+                </div>
+            </div>
+            <div class="slide-deco">💎</div>
+        </div>
+    </div>
+</div>
+<div class="slider-dots" id="sliderDots">
+    <span class="active"></span><span></span><span></span><span></span>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="container">
+
+    <!-- TAB: ACCUEIL -->
+    <div class="tab-section active" id="tab-accueil">
+
+        <!-- Derniers Gagnants -->
+        <div class="section-header">
+            <div class="section-label">🏅 Dènye Gagnyan</div>
+        </div>
+        <div class="winners-scroll" id="winnersScroll">
+            <!-- Test data -->
+            <div class="winner-card">
+                <div class="winner-avatar solo">⚡</div>
+                <div class="winner-info">
+                    <div class="winner-amount">5 000 G</div>
+                    <div class="winner-name">Jean <del>Ber......ard</del></div>
+                    <div class="winner-meta">14:32</div>
+                </div>
+                <div class="winner-mode solo">Solo</div>
+            </div>
+            <div class="winner-card">
+                <div class="winner-avatar tounwa">🏆</div>
+                <div class="winner-info">
+                    <div class="winner-amount">10 000 G</div>
+                    <div class="winner-name">Franz <del>Pier......re</del></div>
+                    <div class="winner-meta">21:05</div>
+                </div>
+                <div class="winner-mode tounwa">Tounwa</div>
+            </div>
+            <div class="winner-card">
+                <div class="winner-avatar solo">⚡</div>
+                <div class="winner-info">
+                    <div class="winner-amount">500 G</div>
+                    <div class="winner-name">Robens <del>Lav......il</del></div>
+                    <div class="winner-meta">18:44</div>
+                </div>
+                <div class="winner-mode solo">Solo</div>
+            </div>
+            <div class="winner-card">
+                <div class="winner-avatar tounwa">🏆</div>
+                <div class="winner-info">
+                    <div class="winner-amount">5 000 G</div>
+                    <div class="winner-name">Kens <del>Val......cin</del></div>
+                    <div class="winner-meta">Mar, 10:12</div>
+                </div>
+                <div class="winner-mode tounwa">Tounwa</div>
+            </div>
+        </div>
+        
+        <div class="section-header">
+    <div class="section-label">Mode Solo</div>
+</div>
+
+<!-- SOLO 1 — 5000G -->
+<div class="solo-card" onclick="goSolo()" style="margin-bottom:10px;">
+    <div class="solo-inner">
+        <div class="solo-top">
+            <div>
+                <div class="solo-badge">⚡ Disponib</div>
+                <div class="solo-headline" style="margin-top:8px;">5 000 <em>Goud</em></div>
+                <div class="solo-sub">25 kesyon · 50G pou jwe · 0% aza</div>
+            </div>
+            <button class="solo-btn">Jwe <span class="solo-btn-arrow">→</span></button>
+        </div>
+    </div>
+</div>
+
+<div class="solo-card" onclick="location.href='solo5.html'" style="margin-bottom:10px; cursor:pointer;">
+    <div class="solo-inner">
+        <div class="solo-top">
+            <div>
+                <div class="solo-badge" style="background:rgba(250,204,21,0.15); color:#facc15; border-color:rgba(250,204,21,0.35);">🔥 Expert</div>
+                <div class="solo-headline" style="margin-top:8px;">500 <em>Goud</em></div>
+                <div class="solo-sub">25 kesyon · 5G pou jwe · 0% aza</div>
+            </div>
+            <button class="solo-btn">Jwe <span class="solo-btn-arrow">→</span></button>
+        </div>
+    </div>
+</div>
+
+        <!-- Tounwa -->
+        <div class="section-header">
+            <div class="section-label">Tounwa</div>
+        </div>
+        <div class="tournoi-card">
+            <div class="tournoi-inner">
+                <div class="tournoi-header">
+                    <span class="tournoi-badge">🏆 RAPID 100</span>
+                    <span class="tournoi-timer" id="timerT100">--:--:--</span>
+                </div>
+                <div class="tournoi-prize">10 000 <span>Goud</span></div>
+                <div class="tournoi-meta">
+                    <span>👥 100 patisipan max</span>
+                    <span>💰 100 Goud pou antre</span>
+                </div>
+                <button class="btn-join" onclick="goTournoi()">Tounwa yo ap disponib nan kèk jou</button>
+            </div>
+            <div class="tournoi-divider"></div>
+            <div class="tournoi-inner">
+                <div class="tournoi-header">
+                    <span class="tournoi-badge elite">💎 ELITE 500</span>
+                    <span class="tournoi-timer" id="timerT500">--:--:--</span>
+                </div>
+                <div class="tournoi-prize">50 000 <span>Goud</span></div>
+                <div class="tournoi-meta">
+                    <span>👥 500 patisipan max</span>
+                    <span>💰 100 Goud pou antre</span>
+                </div>
+                <button class="btn-join" onclick="goTournoi()">Tounwa yo ap disponib nan kèk jou</button>
+            </div>
+        </div>
+
+    </div><!-- /tab-accueil -->
+
+    <!-- TAB: SCORES -->
+    <div class="tab-section" id="tab-scores">
+        <div class="section-header">
+            <div class="section-label">📊 Scores</div>
+        </div>
+        <div class="scores-placeholder">
+            <div class="scores-icon">📊</div>
+            <div style="font-size:15px; font-weight:800; color:var(--text); margin-bottom:8px;">Scores & Rezilta</div>
+            <div>Scores ap chaje depi <strong style="color:var(--gold);">scores.json</strong> ou a.<br>Konekte fichye a pou wè rezilta yo.</div>
+        </div>
+    </div>
+
+    <!-- TAB: TOUNWA -->
+    <div class="tab-section" id="tab-tounwa">
+        <div class="section-header">
+            <div class="section-label">🏆 Tout Tounwa</div>
+        </div>
+        <div class="tournoi-card">
+            <div class="tournoi-inner">
+                <div class="tournoi-header">
+                    <span class="tournoi-badge">🏆 RAPID 100</span>
+                    <span class="tournoi-timer">--:--:--</span>
+                </div>
+                <div class="tournoi-prize">10 000 <span>Goud</span></div>
+                <div class="tournoi-meta">
+                    <span>👥 100 patisipan max</span>
+                    <span>💰 100 Goud pou antre</span>
+                </div>
+                <button class="btn-join" onclick="goTournoi()">Tounwa yo ap disponib nan kèk jou</button>
+            </div>
+            <div class="tournoi-divider"></div>
+            <div class="tournoi-inner">
+                <div class="tournoi-header">
+                    <span class="tournoi-badge elite">💎 ELITE 500</span>
+                    <span class="tournoi-timer">--:--:--</span>
+                </div>
+                <div class="tournoi-prize">50 000 <span>Goud</span></div>
+                <div class="tournoi-meta">
+                    <span>👥 500 patisipan max</span>
+                    <span>💰 100 Goud pou antre</span>
+                </div>
+                <button class="btn-join" onclick="goTournoi()">Tounwa yo ap disponib nan kèk jou</button>
+            </div>
+        </div>
+    </div>
+
+<div class="tab-section" id="tab-plis">
+    <div class="section-header">
+        <div class="section-label" style="font-size: 20px; color: var(--gold);">Plis Avantaj</div>
+    </div>
+
+    <style>
+        .plis-container { display: flex; flex-direction: column; gap: 15px; padding-bottom: 20px; }
+        
+        /* Gwo Kat Premyom (Pyramide Top) */
+        .promo-card {
+            background: linear-gradient(135deg, var(--card) 0%, #1e293b 100%);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .promo-card.highlight { border: 1px solid var(--gold); background: linear-gradient(135deg, #1e293b 0%, #2d1b02 100%); }
+        .promo-badge {
+            position: absolute; top: 10px; right: 10px;
+            background: var(--gold); color: black;
+            font-size: 10px; font-weight: 900; padding: 4px 10px;
+            border-radius: 50px; text-transform: uppercase;
+        }
+        .promo-title { color: var(--gold); font-weight: 900; font-size: 18px; margin-bottom: 5px; display: flex; align-items: center; gap: 10px; }
+        .promo-desc { color: var(--text-secondary); font-size: 13px; line-height: 1.4; }
+        
+        /* Grid pou ti kat yo */
+        .promo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .mini-card {
+            background: var(--bg2);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+        }
+        .mini-icon { font-size: 24px; margin-bottom: 8px; display: block; }
+        .mini-title { font-size: 12px; font-weight: 700; color: var(--text); }
+        .mini-val { color: var(--success); font-weight: 900; font-size: 14px; display: block; margin-top: 5px; }
+    </style>
+
+    <div class="plis-container">
+        
+        <div class="promo-card highlight">
+            <span class="promo-badge">Byento</span>
+            <div class="promo-title">🏆 Gwo Tounwa Nasyonal</div>
+            <div class="promo-desc">
+                Vin reprezante zòn ou ak depatman w nan konkou kesyon sou football nou yo. Konkou sa ap kòmanse avan Coupe du monde 2026 la. Rete branche. Ap gen gayan <span style="color:var(--success); font-weight:bold;">Chak Lè</span> ak <span style="color:var(--success); font-weight:bold;">Chak Jou</span>. Pa kite chans ou pase!
+            </div>
+        </div>
+
+        <div class="promo-card">
+            <div class="promo-title">🎁 Kado chak jou</div>
+            <div class="promo-desc">
+                Pou jwè fidèl yo sèlman: N ap bay lajan kado chak jou. Plis ou jwe, plis ou gen chans pou sistèm nan chwazi w pou yon "Don Espesyal". Pwomosyon sa poko disponib.
+            </div>
+        </div>
+
+        <div class="promo-grid">
+            <div class="mini-card" onclick="window.location.href='ezipay-paiement.html'">
+                <span class="mini-icon">💰</span>
+                <span class="mini-title">Bonus Depo</span>
+                <span class="mini-val">+50% GRATIS</span>
+            </div>
+            <div class="mini-card">
+                <span class="mini-icon">🪙</span>
+                <span class="mini-title">Ou kapab jwe ak</span>
+                <span class="mini-val">5 GOUD SÈLMAN</span>
+            </div>
+        </div>
+
+        <div class="section-header" style="margin-top:10px;">
+            <div class="section-label" style="font-size:14px; opacity:0.7;">Byento (Ap vini...)</div>
+        </div>
+        
+        <div class="menu-nav" style="gap:8px;">
+            <div class="menu-item" style="background:rgba(255,255,255,0.03); border:none; opacity:0.6;">
+                <span class="menu-item-icon">⚽</span>
+                <span class="menu-item-label">Lòt Jwèt Foot (Coming soon)</span>
+            </div>
+            <div class="menu-item" style="background:rgba(255,255,255,0.03); border:none; opacity:0.6;">
+                <span class="menu-item-icon">🎮</span>
+                <span class="menu-item-label">Jwèt Estrateji & Reflex</span>
+            </div>
+        </div>
+
+        <div class="menu-divider" style="margin: 10px 0;"></div>
+        <div class="menu-nav" style="gap:8px;">
+            <div class="menu-item" onclick="window.location.href='classement.html'" style="background:var(--bg2);">
+                <span class="menu-item-icon">📊</span>
+                <span class="menu-item-label">Klasman Jeneral</span>
+                <span class="menu-item-arrow">→</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ===== BOTTOM NAV ===== -->
+<nav class="bottom-nav">
+    <button class="nav-item active" id="nav-accueil" onclick="switchTab('accueil')">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Akèy</span>
+    </button>
+    <button class="nav-item" id="nav-solo" onclick="goSolo()">
+        <span class="nav-icon">⚡</span>
+        <span class="nav-label">Jwe Solo</span>
+    </button>
+    <button class="nav-item" id="nav-scores" onclick="switchTab('scores')">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Scores</span>
+    </button>
+    <button class="nav-item" id="nav-tounwa" onclick="switchTab('tounwa')">
+        <span class="nav-icon">🏆</span>
+        <span class="nav-label">Tounwa</span>
+    </button>
+    <button class="nav-item" id="nav-plis" onclick="switchTab('plis')">
+        <span class="nav-icon">💥</span>
+        <span class="nav-label">Plis</span>
+    </button>
+</nav>
+
+<div class="modal-overlay" id="menuModal" onclick="closeMenuOutside(event)">
+    <div class="menu-modal">
+        <div class="menu-header">
+            <div class="menu-logo">Anti-Paryaj</div>
+            <button class="menu-close" onclick="hideModal('menuModal')">✕</button>
+        </div>
+        <div class="menu-user" id="menuUserBlock">
+            <div class="menu-user-name" id="menuName">—</div>
+            <div class="menu-user-balance" id="menuBalance">— Goud</div>
+            <div style="font-size:12px; color:#4ade80; margin-top:3px;" id="menuKredi">Kredi: — G</div>
+        </div>
+        <nav class="menu-nav">
+            <div class="menu-item" onclick="window.location.href='concept.html'">
+                <span class="menu-item-icon">💡</span>
+                <span class="menu-item-label">Kisa Anti-Paryaj ye?</span>
+            </div>
+            <div class="menu-item" onclick="window.location.href='regleman.html'">
+                <span class="menu-item-icon">📜</span>
+                <span class="menu-item-label">Règleman</span>
+            </div>
+            <div class="menu-item" onclick="window.location.href='patenarya.html'">
+                <span class="menu-item-icon">🤝</span>
+                <span class="menu-item-label">Ouvri yon Biwo Anti-Paryaj</span>
+            </div>
+            <div class="menu-item" onclick="window.location.href='ed.html'">
+                <span class="menu-item-icon">❓</span>
+                <span class="menu-item-label">Èd</span>
+            </div>
+            <div class="menu-item" onclick="window.location.href='kontak.html'">
+                <span class="menu-item-icon">📞</span>
+                <span class="menu-item-label">Kontak</span>
+            </div>
+            
+            <div class="menu-divider"></div>
+
+            <div class="menu-item" onclick="window.location.href='ezipay-paiement.html'">
+                <span class="menu-item-icon">💳</span>
+                <span class="menu-item-label">Fè yon Depo</span>
+            </div>
+            <div class="menu-item danger" onclick="logout(); hideModal('menuModal')">
+                <span class="menu-item-icon">🚪</span>
+                <span class="menu-item-label">Dekonekte</span>
+            </div>
+        </nav>
+    </div>
+</div>
+
+<!-- ===== AUTH MODAL ===== -->
+<div class="modal-overlay" id="authModal">
+    <div class="auth-modal">
+        <div class="auth-title" id="authTitle">Konekte</div>
+        <div class="auth-form">
+            <div class="form-group" id="usernameGroup" style="display:none;">
+                <label>Non Itilizatè</label>
+                <input type="text" id="usernameInput" placeholder="Non ou nan jwèt la">
+            </div>
+            <div class="form-group">
+                <label>Imèl</label>
+                <input type="email" id="emailInput" placeholder="imèl@example.com">
+            </div>
+            <div class="form-group" id="phoneGroup" style="display:none;">
+    <label>Nimewo MonCash/Natcash</label>
+    <div style="display: flex; align-items: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 0 10px;">
+        <span style="color: var(--or); font-weight: bold; margin-right: 8px;">+509</span>
+        <input type="tel" id="phoneInput" placeholder="40000000" style="flex: 1; background: transparent; border: none; color: white; padding: 12px 0; outline: none; font-family: inherit;">
+    </div>
+    <p style="font-size: 11px; color: var(--or); margin-top: 5px; opacity: 0.9;">⚠️ Wap ka touche sèlman sou nimewo sa.</p>
+</div>
+            <div class="form-group">
+                <label>Modpas</label>
+                <input type="password" id="passwordInput" placeholder="••••••••">
+            </div>
+            <button class="btn-auth" onclick="submitAuth()">Kontinye</button>
+        </div>
+        <div class="auth-switch">
+            <span id="authSwitch" onclick="toggleAuthMode()">Ou pa gen kont ? Enskri</span>
+        </div>
+    </div>
+</div>
+
+<!-- ===== PROFILE PANEL ===== -->
+<div class="side-panel" id="profilePanel" onclick="closePanelOutside(event)">
+    <div class="side-panel-inner">
+        <div class="profile-name" id="panelName">—</div>
+        <div class="profile-balance">
+            <div class="balance-label">Balans</div>
+            <div class="balance-amount" id="panelBalance">—</div>
+            <div class="balance-sub">Goud reyèl</div>
+            <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.06);">
+                <div class="balance-label">Kredi Bonus</div>
+                <div style="font-size:18px; font-weight:800; color:#4ade80;" id="panelKredi">—</div>
+            </div>
+        </div>
+        <button class="btn-deposit" onclick="window.location.href='ezipay-paiement.html'">💳 Fè yon Depo</button>
+        <button onclick="showRetrait()" style="width:100%; padding:13px; background:transparent; color:var(--text-secondary); border:1px solid rgba(255,255,255,0.08); border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; margin-bottom:10px;">💸 Fè yon Retrè</button>
+        <div id="retrait-msg" style="display:none; background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:10px; padding:12px 14px; font-size:13px; color:var(--text-secondary); line-height:1.6; margin-bottom:10px; text-align:center;">
+            💰 Pou fè yon retrè, ou dwe gen lajan nan balans ou.<br>
+            <span style="color:var(--gold);font-weight:700;">Balans bonus pa ka retire.</span><br>
+            Kontakte nou sou WhatsApp pou tout retrè.
+            <br><br>
+            <a href="https://wa.me/50955750121" target="_blank" style="display:inline-block; background:linear-gradient(135deg,#25D366,#16a34a); color:#fff; font-weight:800; font-size:13px; padding:8px 20px; border-radius:8px; text-decoration:none;">📱 WhatsApp</a>
+        </div>
+        <button class="btn-logout" onclick="logout()">Dekonekte</button>
+    </div>
+</div>
+
+<style>
+    .full-modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: #0b1120; z-index: 30000; flex-direction: column; display: none;
+    }
+    .modal-header-statique {
+        padding: 20px; background: #131c2e; border-bottom: 1px solid rgba(245,158,11,0.2);
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .close-btn-statique { background: none; border: none; color: #7a8fa6; font-size: 28px; cursor: pointer; }
+    .modal-body-statique { flex: 1; padding: 25px; overflow-y: auto; color: #f1f5f9; font-family: sans-serif; }
+    .premium-card-statique { background: #1a2338; padding: 20px; border-radius: 15px; border: 1px solid rgba(245,158,11,0.2); margin-bottom: 20px; }
+    .gold-txt { color: #f59e0b; font-weight: 900; }
+</style>
+
+<div id="main-modal-overlay" class="full-modal-overlay">
+    <div class="modal-header-statique">
+        <div id="modal-title-text" style="color:#f59e0b; font-weight:900;">TITRE</div>
+        <button onclick="closeFullModal()" class="close-btn-statique">✕</button>
+    </div>
+
+    <div class="modal-body-statique">
+        <div id="content-concept" class="modal-section" style="display:none;">
+            <div class="premium-card-statique">
+                <p><span class="gold-txt">Anti-Paryaj se pa aza.</span> Nou pini chans, nou rekonpanse vijilans.</p>
+            </div>
+            <p>Isit la, nou itilize vrè match, men nou mete pyèj. Si ou pa konsantre, ou pèdi. Se tèt ou k'ap fè ou genyen.</p>
+        </div>
+
+        <div id="content-regleman" class="modal-section" style="display:none;">
+            <p class="gold-txt">1. 25 SOU 25</p>
+            <p>Ou dwe fè yon sans-fòt. Yon sèl erè ou deyò.</p>
+            <p class="gold-txt" style="margin-top:15px;">2. TIMER 5 SEGONN</p>
+            <p>Chak segonn konte. Si tan an fini, jwèt la fini.</p>
+        </div>
+
+        <div id="content-patenarya" class="modal-section" style="display:none;">
+            <div class="premium-card-statique">
+                <p class="gold-txt">VIN AJAN OFISYÈL</p>
+                <p>Louvri yon biwo nan zòn ou epi touche komisyon sou chak moun k'ap jwe.</p>
+            </div>
+        </div>
+
+        <div id="content-ed" class="modal-section" style="display:none;">
+            <p class="gold-txt">KIJAN POU M TOUCHÈ?</p>
+            <p>Peman yo fèt via MonCash/Natcash nan mwens pase 24h apre verifikasyon viktwa w la.</p>
+        </div>
+
+        <div id="content-kontak" class="modal-section" style="display:none;">
+            <p><b>📧 Imèl:</b> jynnjaisy@gmail.com</p>
+            <p><b>📞 WhatsApp:</b> +509 5575-0121</p>
+            <p><b>📱 Rezo:</b> Facebook/Instagram: Chanpyon509</p>
+        </div>
+    </div>
+</div>
+
+
+<script>
+// ===== INTRO HIDE =====
+setTimeout(() => {
+    const intro = document.getElementById('intro');
+    if (intro) intro.style.display = 'none';
+}, 4700);
+
+// ===== SLIDER =====
+let slideIdx = 0;
+const slides = document.getElementById('slides');
+const dots = document.querySelectorAll('#sliderDots span');
+const totalSlides = 4;
+
+function goSlide(n) {
+    slideIdx = (n + totalSlides) % totalSlides;
+    slides.style.transform = `translateX(-${slideIdx * 100}%)`;
+    dots.forEach((d, i) => d.classList.toggle('active', i === slideIdx));
+}
+dots.forEach((d, i) => d.addEventListener('click', () => goSlide(i)));
+setInterval(() => goSlide(slideIdx + 1), 3500);
+
+// ===== TAB SWITCH — VERSION FINALE SÉCURISÉE =====
+window.switchTab = function(tab) {
+    console.log("Basculement vers :", tab);
+    
+    document.querySelectorAll('.tab-section').forEach(s => {
+        s.classList.remove('active');
+        s.style.display = 'none';
+    });
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    
+    const targetTab = document.getElementById('tab-' + tab);
+    const targetNav = document.getElementById('nav-' + tab);
+    
+    if(targetTab) {
+        targetTab.classList.add('active');
+        targetTab.style.display = 'block';
+    }
+    if(targetNav) targetNav.classList.add('active');
+
+    if (tab === 'scores') {
+        const container = document.getElementById('tab-scores');
+        if(!container) return;
+
+        container.innerHTML = '<div style="padding:50px; text-align:center; color:#7a8fa6;">🔄 Chajman...</div>';
+
+        fetch('solo.json?v=' + Date.now())
+            .then(response => response.json())
+            .then(data => {
+                let html = `
+                    <div style="margin-bottom:20px; text-align:center; padding:10px; background:rgba(245,158,11,0.1); border-radius:10px; border:1px solid rgba(245,158,11,0.2);">
+                        <span style="color:#f59e0b; font-weight:900; font-size:14px; letter-spacing:1px;">
+                           📊 ${data.journee || 'SCORES'} — ${data.session || ''}
+                        </span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                `;
+
+                // Liste de tes messages publicitaires
+                const ads = [
+                    "Pa gen jwèt ki pi fasil ke Anti-Paryaj",
+                    "Genyen jiska 50,000 goud chak semèn",
+                    "Sispann jwe sou aza, jwe ak konpetans ou",
+                    "Touche kòb ou sou plas, san pèdi tan",
+                    "Anti-Paryaj pa gen pwoblèm peye moun"
+                ];
+
+                let matchCount = 0;
+                let adIndex = 0;
+
+                if (data.matchs_reels) {
+                    data.matchs_reels.forEach((m, index) => {
+                        if (m.sd !== null && m.sd !== undefined) {
+                            matchCount++;
+                            
+                            // Affichage du match
+                            html += `
+                            <div style="background:#1a2338; border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:15px; display:flex; align-items:center; justify-content:space-between; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
+                                <span style="flex:1; color:white; font-size:13px; font-weight:700;">${m.domicile}</span>
+                                <div style="background:rgba(0,0,0,0.3); padding:6px 12px; border-radius:8px; margin:0 12px; min-width:75px; text-align:center; border:1px solid rgba(245,158,11,0.3);">
+                                    <span style="color:#facc15; font-size:17px; font-weight:900;">${m.sd}:${m.se}</span>
+                                </div>
+                                <span style="flex:1; color:white; font-size:13px; font-weight:700; text-align:right;">${m.exterieur}</span>
+                            </div>`;
+
+                            // TOUS LES 5 MATCHS : On insère un Slide-In (Publicité)
+                            if (matchCount % 5 === 0) {
+                                let currentAd = ads[adIndex % ads.length];
+                                adIndex++;
+                                html += `
+                                <div style="margin:10px 0; padding:15px; background:linear-gradient(90deg, #f59e0b, #fbbf24); border-radius:12px; transform: translateX(0); animation: slideIn 0.5s ease-out; box-shadow: 0 10px 20px rgba(245,158,11,0.2);">
+                                    <div style="display:flex; align-items:center; gap:10px;">
+                                        <span style="font-size:20px;">🔥</span>
+                                        <span style="color:#000; font-weight:900; font-size:14px; text-transform:uppercase; letter-spacing:-0.2px;">${currentAd}</span>
+                                    </div>
+                                </div>`;
+                            }
+                        }
+                    });
+                }
+
+                html += `</div><div style="height:100px;"></div>`;
+                container.innerHTML = html;
+            })
+            .catch(err => {
+                container.innerHTML = `<div style="padding:40px; text-align:center; color:#ef4444;">⚠️ Erè chajman.</div>`;
+            });
+    }
+}
+
+// Ajoute cette petite animation CSS en haut de ton fichier ou dans ton bloc <style>
+const styleSheet = document.createElement("style");
+styleSheet.innerText = `
+    @keyframes slideIn {
+        from { transform: translateX(-100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+`;
+document.head.appendChild(styleSheet);
+
+// ===== FIREBASE / AUTH =====
+let currentUser = null;
+let isLoginMode = true;
+let userData = {};
+
+function set(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+}
+
+window.firebaseApp.auth.onAuthStateChanged(async (user) => {
+    currentUser = user;
+    if (!user) {
+        document.getElementById('authModal').classList.add('show');
+    } else {
+        document.getElementById('authModal').classList.remove('show');
+        await loadUserData();
+    }
+});
+
+async function loadUserData() {
+    if (!currentUser) return;
+    const doc = await window.firebaseApp.db.collection('users').doc(currentUser.uid).get();
+    userData = doc.data() || {};
+    const name = userData.username || currentUser.displayName || currentUser.email.split('@')[0];
+    set('panelName', name);
+    set('panelEmail', currentUser.email);
+    set('panelBalance', (userData.balance || 0) + ' G');
+    set('panelKredi', (userData.kredi || 0) + ' G');
+    set('menuName', name);
+    set('menuBalance', (userData.balance || 0) + ' G');
+    set('menuKredi', 'Kredi: ' + (userData.kredi || 0) + ' G');
+}
+
+function toggleAuthMode() {
+    isLoginMode = !isLoginMode;
+    
+    // Réinitialisation des champs pour éviter que les données restent affichées
+    document.getElementById('usernameInput').value = '';
+    document.getElementById('emailInput').value = '';
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('phoneInput').value = '';
+
+    set('authTitle', isLoginMode ? 'Konekte' : 'Enskri');
+    set('authSwitch', isLoginMode ? 'Ou pa gen kont ? Enskri' : 'Ou gen kont deja ? Konekte');
+    
+    const displayStyle = isLoginMode ? 'none' : 'block';
+    document.getElementById('usernameGroup').style.display = displayStyle;
+    document.getElementById('phoneGroup').style.display = displayStyle;
+}
+
+async function submitAuth() {
+    const email = document.getElementById('emailInput').value.trim();
+    const password = document.getElementById('passwordInput').value;
+    // On récupère le numéro
+    const phone = document.getElementById('phoneInput').value.trim();
+
+    if (!email || !password) { showToast('⚠️ Ranpli tout chan yo'); return; }
+
+    try {
+        if (isLoginMode) {
+            await window.firebaseApp.auth.signInWithEmailAndPassword(email, password);
+        } else {
+            const username = document.getElementById('usernameInput').value.trim();
+            // Validation du nom et du téléphone
+            if (!username) { showToast('⚠️ Mete yon non'); return; }
+            if (!phone || phone.length < 8) { showToast('⚠️ Mete yon nimewo telefòn valid'); return; }
+
+            const cred = await window.firebaseApp.auth.createUserWithEmailAndPassword(email, password);
+            await cred.user.updateProfile({ displayName: username });
+            
+            // Enregistrement avec le numéro (+509 ajouté devant la valeur)
+            await firebase.firestore().collection('users').doc(cred.user.uid).set({
+                username, 
+                email, 
+                phone: '+509' + phone,
+                balance: 0, 
+                kredi: 150, 
+                createdAt: new Date()
+            });
+        }
+    } catch(e) {
+        showToast('❌ ' + (e.message || 'Erè koneksyon'));
+    }
+}
+
+function goSolo() {
+    if (!currentUser) {
+        showToast('⚠️ Ou dwe konekte dabò');
+        document.getElementById('authModal').classList.add('show');
+        return;
+    }
+    window.location.href = 'solo.html';
+}
+
+function goTournoi() {
+    if (!currentUser) {
+        showToast('⚠️ Ou dwe konekte dabò');
+        document.getElementById('authModal').classList.add('show');
+        return;
+    }
+    window.location.href = 'anti-paryaj.html';
+}
+
+document.getElementById('profileBtn').onclick = () => {
+    if (!currentUser) {
+        document.getElementById('authModal').classList.add('show');
+    } else {
+        document.getElementById('profilePanel').classList.add('show');
+    }
+};
+
+document.querySelector('.menu-icon').onclick = () => {
+    if (!currentUser) {
+        document.getElementById('authModal').classList.add('show');
+        return;
+    }
+    document.getElementById('menuModal').classList.add('show');
+};
+
+function closePanelOutside(e) {
+    if (e.target === document.getElementById('profilePanel'))
+        document.getElementById('profilePanel').classList.remove('show');
+}
+
+function closeMenuOutside(e) {
+    if (e.target === document.getElementById('menuModal'))
+        document.getElementById('menuModal').classList.remove('show');
+}
+
+function hideModal(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('show');
+}
+
+function logout() {
+    window.firebaseApp.auth.signOut();
+    hideModal('profilePanel');
+    hideModal('menuModal');
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function showRetrait() {
+    const msg = document.getElementById('retrait-msg');
+    const btn = document.querySelector('[onclick="showRetrait()"]');
+    btn.textContent = '⏳ Chajman...';
+    btn.disabled = true;
+    setTimeout(() => {
+        btn.textContent = '💸 Fè yon Retrè';
+        btn.disabled = false;
+        msg.style.display = 'block';
+    }, 3000);
+}
+
+// ===== SCORES =====
+const slogans = [
+    "Pa gen jwèt ki pi fasil ke Anti-Paryaj 🧠",
+    "Genyen jiska 50 000 Goud 💰",
+    "Sispann jwe sou aza — jwe sou konesans 🎯",
+    "Touche sou plas, san atann ⚡",
+    "Anti-Paryaj pa gen pwoblèm peye 🏆"
+];
+
+async function loadScores() {
+    try {
+        const data = {
+            session: "2026-03-22",
+            journee: "J29",
+            matchs_reels: [
+                { id:"r001", champ:"PL", domicile:"Brentford FC", exterieur:"Wolverhampton", sd:2, se:2 },
+                { id:"r002", champ:"PL", domicile:"Bournemouth", exterieur:"Man United", sd:2, se:2 },
+                { id:"r003", champ:"Liga", domicile:"Real Madrid", exterieur:"Barcelona", sd:3, se:1 },
+                { id:"r004", champ:"UCL", domicile:"PSG", exterieur:"Bayern", sd:1, se:0 },
+                { id:"r005", champ:"Serie A", domicile:"Juventus", exterieur:"Milan", sd:2, se:2 },
+                { id:"r006", champ:"Ligue 1", domicile:"Monaco", exterieur:"PSG", sd:0, se:1 }
+            ]
+        };
+        const matchs = data.matchs_reels;
+        const container = document.getElementById('tab-scores');
+        let html = `<div class="section-header"><div class="section-label">📊 ${data.journee} — ${data.session}</div></div>`;
+        matchs.forEach((m, i) => {
+            if (i > 0 && i % 5 === 0) {
+                const slogan = slogans[Math.floor(i / 5 - 1) % slogans.length];
+                html += `<div style="background:linear-gradient(135deg,#150e00,#221500);border:1px solid rgba(245,158,11,0.35);border-radius:14px;padding:16px 18px;margin-bottom:10px;"><div style="font-size:14px;font-weight:900;background:linear-gradient(90deg,#f59e0b,#facc15,#fff8d6,#facc15,#f59e0b);background-size:300% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:wpShine 3s linear infinite;line-height:1.4;">${slogan}</div></div>`;
+            }
+            html += `<div style="background:var(--card);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:10px;"><div style="font-size:9px;font-weight:800;color:var(--gold);letter-spacing:1px;text-transform:uppercase;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);padding:3px 8px;border-radius:20px;flex-shrink:0;">${m.champ}</div><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:13px;font-weight:700;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.domicile}</span><div style="font-size:18px;font-weight:900;color:var(--gold2);background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:4px 14px;flex-shrink:0;">${m.sd} — ${m.se}</div><span style="font-size:13px;font-weight:700;color:var(--text);flex:1;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.exterieur}</span></div></div></div>`;
+        });
+        container.innerHTML = html;
+    } catch(e) {
+        document.getElementById('tab-scores').innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-secondary);font-size:13px;">⚠️ Erè chajman solo.json</div>`;
+    }
+}
+
+// ===== WELCOME POPUP =====
+const popupStyle = document.createElement('style');
+popupStyle.textContent = `
+#wp-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,0);
+    display: flex; align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 90px;
+    pointer-events: none;
+    transition: background 0.4s;
+}
+#wp-overlay.show {
+    background: rgba(0,0,0,0.65);
+    pointer-events: all;
+}
+#wp-box {
+    background: linear-gradient(135deg, #0f1929 0%, #1a2540 60%, #0d1520 100%);
+    border: 1px solid rgba(245,158,11,0.35);
+    border-radius: 22px;
+    padding: 24px 20px;
+    width: calc(100% - 32px);
+    max-width: 420px;
+    display: flex; align-items: center; gap: 16px;
+    box-shadow: 0 0 40px rgba(245,158,11,0.15), 0 20px 60px rgba(0,0,0,0.6);
+    transform: translateY(40px);
+    opacity: 0;
+    transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s;
+    position: relative;
+    flex-direction: column;
+}
+#wp-box.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+#wp-close {
+    position: absolute; top: 12px; right: 14px;
+    background: none; border: none;
+    color: rgba(255,255,255,0.3); font-size: 16px;
+    cursor: pointer; line-height: 1;
+}
+#wp-row {
+    display: flex; align-items: stretch;
+    gap: 16px; width: 100%;
+}
+#wp-label {
+    font-size: 11px; font-weight: 800;
+    letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 6px;
+    animation: wpPulse 2.5s ease-in-out infinite;
+}
+@keyframes wpPulse {
+    0%,100% { color: rgba(245,158,11,0.6); }
+    50%      { color: rgba(245,158,11,1); }
+}
+#wp-title {
+    font-size: 26px; font-weight: 900;
+    line-height: 1.1; margin-bottom: 8px;
+    background: linear-gradient(90deg, #f59e0b, #facc15, #fff8d6, #facc15, #f59e0b);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: wpShine 3s linear infinite;
+    letter-spacing: -0.5px;
+    font-family: inherit;
+}
+@keyframes wpShine {
+    0%   { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+}
+#wp-sub {
+    font-size: 12px; font-weight: 700;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.5px;
+}
+#wp-sub span { color: #4ade80; }
+#wp-img {
+    width: 130px; height: 130px;flex-shrink: 0;
+    border-radius: 0px; object-fit: cover;
+    animation: wpFloat 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 12px rgba(245,158,11,0.45));
+}
+@keyframes wpFloat {
+    0%,100% { transform: translateY(0); filter: drop-shadow(0 0 10px rgba(245,158,11,0.35)); }
+    50%      { transform: translateY(-6px); filter: drop-shadow(0 0 22px rgba(245,158,11,0.7)); }
+}
+#wp-cta {
+    width: 100%; padding: 13px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #000; border: none; border-radius: 12px;
+    font-size: 13px; font-weight: 900;
+    cursor: pointer; font-family: inherit;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 18px rgba(245,158,11,0.35);
+}
+`;
+document.head.appendChild(popupStyle);
+
+const wpOverlay = document.createElement('div');
+wpOverlay.id = 'wp-overlay';
+wpOverlay.innerHTML = `
+    <div id="wp-box">
+        <button id="wp-close">✕</button>
+        <div id="wp-row">
+    <img id="wp-img" src="argent.png" alt="" onerror="this.style.display='none'">
+    <div style="flex:1;">
+        <div id="wp-label">Sispann parye</div>
+        <div id="wp-title">Fè lajan ak<br>kapasite w</div>
+        <div id="wp-sub"><span>0% aza</span> · 100% konpetans</div>
+    </div>
+</div>
+        <button id="wp-cta">Kòmanse Jwe ak 5 goud sèlman →</button>
+    </div>
+`;
+document.body.appendChild(wpOverlay);
+
+function wpClose() {
+    document.getElementById('wp-box').classList.remove('show');
+    setTimeout(() => document.getElementById('wp-overlay').classList.remove('show'), 400);
+}
+document.getElementById('wp-close').onclick = wpClose;
+document.getElementById('wp-cta').onclick = wpClose;
+wpOverlay.onclick = (e) => { if (e.target === wpOverlay) wpClose(); };
+
+setTimeout(() => {
+    wpOverlay.classList.add('show');
+    setTimeout(() => document.getElementById('wp-box').classList.add('show'), 50);
+}, 5000);
+
+</script>
+</body>
+</html>
