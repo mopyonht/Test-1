@@ -1543,6 +1543,427 @@ setTimeout(() => {
     setTimeout(() => document.getElementById('wp-box').classList.add('show'), 50);
 }, 5000);
 
+    (function() {
+  const STORAGE_KEY = 'ap_onboarding_done';
+
+  function isNewUser() {
+    return !localStorage.getItem(STORAGE_KEY);
+  }
+
+  const s = document.createElement('style');
+  s.textContent = `
+  #ob-overlay {
+    position: fixed; inset: 0; z-index: 99999;
+    background: rgba(0,0,0,0.82);
+    display: flex; align-items: flex-end; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s;
+  }
+  #ob-overlay.show { opacity: 1; pointer-events: all; }
+
+  #ob-box {
+    background: linear-gradient(160deg, #0f1929 0%, #1a2540 70%, #0d1520 100%);
+    border: 1.5px solid rgba(245,158,11,0.35);
+    border-bottom: none;
+    border-radius: 26px 26px 0 0;
+    width: 100%; max-width: 480px;
+    min-height: 70vh; max-height: 90vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 -8px 60px rgba(245,158,11,0.12), 0 -20px 80px rgba(0,0,0,0.7);
+    transform: translateY(100%);
+    transition: transform 0.5s cubic-bezier(0.34,1.4,0.64,1);
+    overflow: hidden;
+  }
+  #ob-box.show { transform: translateY(0); }
+
+  #ob-handle {
+    width: 38px; height: 4px; border-radius: 2px;
+    background: rgba(255,255,255,0.15);
+    margin: 14px auto 0;
+  }
+
+  #ob-slides-wrap {
+    flex: 1; overflow: hidden; position: relative;
+  }
+  .ob-slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 28px 26px 20px;
+    text-align: center;
+    opacity: 0; transform: translateX(40px);
+    transition: opacity 0.4s, transform 0.4s;
+    pointer-events: none;
+  }
+  .ob-slide.active {
+    opacity: 1; transform: translateX(0);
+    pointer-events: all;
+  }
+  .ob-slide.exit {
+    opacity: 0; transform: translateX(-40px);
+  }
+
+  .ob-icon { font-size: 52px; margin-bottom: 18px; }
+
+  .ob-title {
+    font-size: 22px; font-weight: 900;
+    color: #fff; line-height: 1.25;
+    margin-bottom: 10px;
+    font-family: 'Montserrat', system-ui, sans-serif;
+  }
+  .ob-title .gold {
+    background: linear-gradient(90deg, #f59e0b, #facc15, #f59e0b);
+    background-size: 200% 100%;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    animation: obShine 2.5s linear infinite;
+  }
+  @keyframes obShine {
+    0%   { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+  }
+  .ob-sub {
+    font-size: 13px; font-weight: 600;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.5;
+  }
+  .ob-big {
+    font-size: 32px; font-weight: 900; color: #facc15;
+    margin-bottom: 6px;
+  }
+
+  #ob-quiz-wrap {
+    width: 100%; max-width: 340px;
+  }
+  .ob-match-header {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 10px 16px;
+    font-size: 12px; font-weight: 800;
+    color: rgba(255,255,255,0.55);
+    letter-spacing: 1px; text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .ob-match-score {
+    font-size: 20px; font-weight: 900; color: #fff;
+    margin-top: 2px; letter-spacing: -0.5px;
+  }
+  .ob-options { display: flex; flex-direction: column; gap: 8px; }
+  .ob-opt {
+    padding: 11px 14px;
+    border: 1.5px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+    font-size: 13px; font-weight: 700; color: #fff;
+    text-align: left; display: flex; align-items: center; gap: 10px;
+    transition: all 0.3s;
+    cursor: default;
+  }
+  .ob-opt .ob-letter {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.5);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.3s;
+  }
+  .ob-opt.selecting {
+    border-color: rgba(245,158,11,0.6);
+    background: rgba(245,158,11,0.08);
+  }
+  .ob-opt.selecting .ob-letter { background: var(--gold); color: #000; }
+  .ob-opt.correct {
+    border-color: #4ade80;
+    background: rgba(74,222,128,0.12);
+  }
+  .ob-opt.correct .ob-letter { background: #4ade80; color: #000; }
+  .ob-feedback {
+    margin-top: 10px; padding: 8px 14px;
+    border-radius: 10px; font-size: 12px; font-weight: 800;
+    text-align: center; opacity: 0;
+    transition: opacity 0.4s;
+    background: rgba(74,222,128,0.15);
+    color: #4ade80; border: 1px solid rgba(74,222,128,0.3);
+  }
+  .ob-feedback.show { opacity: 1; }
+
+  #ob-footer {
+    padding: 16px 24px 28px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  #ob-progress {
+    display: flex; gap: 5px;
+  }
+  .ob-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    transition: all 0.3s;
+  }
+  .ob-dot.done { background: #4ade80; }
+  .ob-dot.current { background: var(--gold); width: 16px; border-radius: 3px; }
+
+  #ob-replay {
+    width: 100%; padding: 11px;
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    border-radius: 13px;
+    font-size: 13px; font-weight: 800;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer; font-family: 'Montserrat', system-ui, sans-serif;
+    display: none;
+  }
+  #ob-btn {
+    width: 100%; padding: 14px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #000; border: none; border-radius: 13px;
+    font-size: 14px; font-weight: 900;
+    cursor: pointer; font-family: 'Montserrat', system-ui, sans-serif;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 20px rgba(245,158,11,0.35);
+    transition: opacity 0.3s, transform 0.2s;
+  }
+  #ob-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  #ob-btn:not(:disabled):active { transform: scale(0.97); }
+  `;
+  document.head.appendChild(s);
+
+  const slides = [
+    {
+      icon: '⚽',
+      title: 'Ak <span class="gold">Anti-Paryaj</span>,<br>ou sèlman jwe <em>aprè match</em> !',
+      sub: 'Pa gen aza — 100% konesans foutbòl'
+    },
+    {
+      icon: '🎯',
+      title: 'Nou sèlman poze w kesyon<br>sou <span class="gold">rezilta ki pase deja</span> !',
+      sub: 'Kidonk li fasil anpil ! Ou konnen rezilta ? Ou genyen !'
+    },
+    {
+      icon: '👀',
+      title: 'Nap montre w<br>kòman pou w <span class="gold">jwe</span>',
+      sub: ''
+    },
+    {
+      icon: null,
+      title: null,
+      sub: null,
+      quiz: true
+    },
+    {
+      icon: '💵',
+      title: 'Ou kapab jwe ak<br><span class="gold">5 goud sèlman</span> !',
+      sub: 'Ase aksè pou tout moun'
+    },
+    {
+      icon: '🏆',
+      lines: true
+    },
+    {
+      icon: '🎁',
+      title: 'Ou gen <span class="gold">150 bonus</span><br>pou w teste jwèt la !',
+      sub: 'Kòmanse Jwe kounya !',
+      last: true
+    }
+  ];
+
+  const overlay = document.createElement('div');
+  overlay.id = 'ob-overlay';
+  overlay.innerHTML = `
+    <div id="ob-box">
+      <div id="ob-handle"></div>
+      <div id="ob-slides-wrap">
+        ${slides.map((sl, i) => {
+          if (sl.quiz) return `
+            <div class="ob-slide" data-idx="${i}">
+              <div id="ob-quiz-wrap">
+                <div class="ob-match-header">
+                  <span id="ob-quiz-champ">Liga Espayòl</span>
+                  <div class="ob-match-score" id="ob-quiz-teams">Real Madrid vs Barcelona</div>
+                </div>
+                <div class="ob-options" id="ob-quiz-opts"></div>
+                <div class="ob-feedback" id="ob-quiz-fb"></div>
+              </div>
+            </div>`;
+          if (sl.lines) return `
+            <div class="ob-slide" data-idx="${i}">
+              <div class="ob-icon">🏆</div>
+              <div style="display:flex;flex-direction:column;gap:14px;width:100%;max-width:300px;">
+                <div style="background:rgba(245,158,11,0.08);border:1.5px solid rgba(245,158,11,0.3);border-radius:16px;padding:16px;text-align:center;">
+                  <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.45);margin-bottom:4px;">Ou jwe</div>
+                  <div class="ob-big">5 goud</div>
+                  <div style="font-size:13px;color:#4ade80;font-weight:800;">→ genyen 500 goud</div>
+                </div>
+                <div style="background:rgba(245,158,11,0.08);border:1.5px solid rgba(245,158,11,0.3);border-radius:16px;padding:16px;text-align:center;">
+                  <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.45);margin-bottom:4px;">Ou jwe</div>
+                  <div class="ob-big">50 goud</div>
+                  <div style="font-size:13px;color:#4ade80;font-weight:800;">→ genyen 5,000 goud</div>
+                </div>
+              </div>
+            </div>`;
+          return `
+            <div class="ob-slide" data-idx="${i}">
+              <div class="ob-icon">${sl.icon}</div>
+              <div class="ob-title">${sl.title}</div>
+              ${sl.sub ? `<div class="ob-sub">${sl.sub}</div>` : ''}
+            </div>`;
+        }).join('')}
+      </div>
+      <div id="ob-footer">
+        <div id="ob-progress">
+          ${slides.map((_, i) => `<div class="ob-dot" id="ob-dot-${i}"></div>`).join('')}
+        </div>
+        <button id="ob-replay">🔄 Regade l ankò</button>
+        <button id="ob-btn">OK</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const quizData = [
+    {
+      champ: 'Liga Espayòl', teams: 'Real Madrid vs Barcelona',
+      opts: ['0-0','2-1','1-3','2-0'], correct: 1,
+      answer: '2-1'
+    },
+    {
+      champ: 'Premier League', teams: 'Arsenal vs Man City',
+      opts: ['1-1','3-1','0-2','2-2'], correct: 2,
+      answer: '0-2'
+    }
+  ];
+
+  let current = 0;
+  let quizPhase = 0;
+  let quizTimer = null;
+  const btn = document.getElementById('ob-btn');
+  const replayBtn = document.getElementById('ob-replay');
+  const allSlides = document.querySelectorAll('.ob-slide');
+
+  function renderDots() {
+    slides.forEach((_, i) => {
+      const d = document.getElementById('ob-dot-' + i);
+      d.className = 'ob-dot' + (i < current ? ' done' : i === current ? ' current' : '');
+    });
+  }
+
+  function showSlide(idx) {
+    allSlides.forEach(sl => sl.classList.remove('active', 'exit'));
+    allSlides[idx].classList.add('active');
+    renderDots();
+
+    const isLast = idx === slides.length - 1;
+    btn.textContent = isLast ? 'Mw konprann ! 🔥' : 'OK';
+    btn.disabled = !!slides[idx].quiz;
+    replayBtn.style.display = slides[idx].quiz ? 'block' : 'none';
+
+    if (slides[idx].quiz && quizPhase === 0) startQuiz();
+  }
+
+  function nextSlide() {
+    if (slides[current].quiz && quizPhase < 4) return;
+    allSlides[current].classList.add('exit');
+    allSlides[current].classList.remove('active');
+    current++;
+    if (current >= slides.length) {
+      closeOnboarding(true);
+      return;
+    }
+    showSlide(current);
+  }
+
+  function buildOpts(qIdx) {
+    const q = quizData[qIdx];
+    document.getElementById('ob-quiz-champ').textContent = q.champ;
+    document.getElementById('ob-quiz-teams').textContent = q.teams;
+    const fb = document.getElementById('ob-quiz-fb');
+    fb.textContent = '';
+    fb.classList.remove('show');
+    document.getElementById('ob-quiz-opts').innerHTML = q.opts.map((o, i) => `
+      <div class="ob-opt" id="ob-opt-${i}">
+        <div class="ob-letter">${String.fromCharCode(65+i)}</div>
+        ${o}
+      </div>`).join('');
+  }
+
+  function startQuiz() {
+    quizPhase = 1;
+    if (quizTimer) clearInterval(quizTimer);
+    buildOpts(0);
+    let step = 0;
+    const sequence = [0, 2, quizData[0].correct];
+    quizTimer = setInterval(() => {
+      document.querySelectorAll('.ob-opt').forEach(el => el.classList.remove('selecting'));
+      const pick = document.getElementById('ob-opt-' + sequence[step]);
+      if (pick) pick.classList.add('selecting');
+      step++;
+      if (step >= sequence.length) {
+        clearInterval(quizTimer);
+        setTimeout(() => selectAnswer(0, quizData[0].correct), 600);
+      }
+    }, 650);
+  }
+
+  function selectAnswer(qIdx, correctIdx) {
+    const q = quizData[qIdx];
+    document.querySelectorAll('.ob-opt').forEach(el => el.classList.remove('selecting'));
+    const target = document.getElementById('ob-opt-' + correctIdx);
+    if (target) target.classList.add('correct');
+    const fb = document.getElementById('ob-quiz-fb');
+    fb.textContent = '✅ Bon repons ! ' + q.answer;
+    fb.classList.add('show');
+
+    if (qIdx === 0) {
+      setTimeout(() => {
+        quizPhase = 3;
+        buildOpts(1);
+        let step2 = 0;
+        const seq2 = [1, 3, quizData[1].correct];
+        quizTimer = setInterval(() => {
+          document.querySelectorAll('.ob-opt').forEach(el => el.classList.remove('selecting'));
+          const pick = document.getElementById('ob-opt-' + seq2[step2]);
+          if (pick) pick.classList.add('selecting');
+          step2++;
+          if (step2 >= seq2.length) {
+            clearInterval(quizTimer);
+            setTimeout(() => {
+              selectAnswer(1, quizData[1].correct);
+              quizPhase = 4;
+              btn.disabled = false;
+            }, 600);
+          }
+        }, 650);
+      }, 1400);
+    }
+  }
+
+  btn.onclick = nextSlide;
+
+  replayBtn.onclick = function() {
+    quizPhase = 0;
+    btn.disabled = true;
+    startQuiz();
+  };
+
+  function closeOnboarding(markDone) {
+    document.getElementById('ob-box').classList.remove('show');
+    setTimeout(() => overlay.classList.remove('show'), 400);
+    if (markDone) localStorage.setItem(STORAGE_KEY, '1');
+  }
+
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) closeOnboarding(false);
+  });
+
+  function launchOnboarding() {
+    overlay.classList.add('show');
+    setTimeout(() => document.getElementById('ob-box').classList.add('show'), 50);
+    showSlide(0);
+  }
+
+  if (isNewUser()) {
+    setTimeout(launchOnboarding, 5000);
+  }
+})();
 </script>
 </body>
 </html>
