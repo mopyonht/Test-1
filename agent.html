@@ -978,7 +978,7 @@ async function doCredit() {
       tx.set(histRef, {
         amount,
         userId: foundUser.uid,
-        userName: foundUser.name,
+        userName: foundUser.username,
         userPhone: foundUser.phone,
         userEmail: foundUser.email,
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
