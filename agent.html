@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="ht">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anti-Paryaj — Espas Ajan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="firebaseConfig.js"></script>
+
+  <style>
+    :root {
+      --bg: #0b1120;
+      --bg2: #131c2e;
+      --card: #1a2338;
+      --border: rgba(245,158,11,0.22);
+      --text: #f1f5f9;
+      --text-secondary: #7a8fa6;
+      --success: #4ade80;
+      --danger: #ef4444;
+      --gold: #f59e0b;
+      --gold2: #facc15;
+      --rouge: #e8001d;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+    body {
+      font-family: 'Montserrat', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ============ ÉCRAN LOGIN ============ */
+    #loginScreen {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: radial-gradient(ellipse at 60% 20%, rgba(245,158,11,0.07) 0%, transparent 60%),
+                  var(--bg);
+    }
+
+    .login-logo {
+      font-size: 26px;
+      font-weight: 900;
+      background: linear-gradient(90deg, #f59e0b, #facc15);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+
+    .login-sub {
+      font-size: 11px;
+      color: var(--text-secondary);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 36px;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 360px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 24px;
+    }
+
+    .login-card h2 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+
+    .field-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .inp {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      outline: none;
+      margin-bottom: 16px;
+      transition: border-color 0.2s;
+    }
+    .inp:focus { border-color: var(--gold); }
+    .inp::placeholder { color: rgba(255,255,255,0.2); }
+
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(90deg, #f59e0b, #facc15);
+      color: #0b1120;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      letter-spacing: 0.3px;
+    }
+    .btn-primary:active { opacity: 0.85; transform: scale(0.98); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    #loginError {
+      font-size: 12px;
+      color: var(--danger);
+      text-align: center;
+      margin-top: 12px;
+      min-height: 16px;
+    }
+
+    /* ============ ÉCRAN PRINCIPAL ============ */
+    #mainScreen { display: none; }
+
+    /* Header */
+    .agent-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg2);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    }
+
+    .agent-header-left { display: flex; flex-direction: column; gap: 2px; }
+
+    .agent-header .logo {
+      font-size: 18px;
+      font-weight: 900;
+      background: linear-gradient(90deg, #f59e0b, #facc15);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .agent-badge {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+
+    .agent-header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .agent-code-chip {
+      background: rgba(245,158,11,0.12);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    .btn-logout {
+      background: rgba(232,0,29,0.12);
+      border: 1px solid rgba(232,0,29,0.25);
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: #ff4d6d;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-logout:active { background: rgba(232,0,29,0.22); }
+
+    /* Tabs */
+    .tabs-bar {
+      display: flex;
+      background: var(--bg2);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 0 12px;
+      gap: 4px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      border-bottom: 2.5px solid transparent;
+      padding: 14px 0;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .tab-btn.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+    }
+
+    .tab-pane { display: none; padding: 20px 16px; }
+    .tab-pane.active { display: block; }
+
+    /* ============ ONGLET CRÉDITER ============ */
+    .section-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .section-desc {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    /* Toggle champ de recherche */
+    .search-toggle {
+      display: flex;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 3px;
+      margin-bottom: 12px;
+      gap: 3px;
+    }
+
+    .search-toggle button {
+      flex: 1;
+      background: none;
+      border: none;
+      border-radius: 8px;
+      padding: 8px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .search-toggle button.active {
+      background: var(--card);
+      color: var(--gold);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+
+    /* User preview */
+    #userPreview {
+      background: rgba(74,222,128,0.06);
+      border: 1px solid rgba(74,222,128,0.2);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    #userPreview.found {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .preview-avatar {
+      width: 36px;
+      height: 36px;
+      background: rgba(74,222,128,0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .preview-info { flex: 1; min-width: 0; }
+    .preview-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--success);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .preview-detail {
+      font-size: 10px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    .preview-kredi {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--gold);
+      white-space: nowrap;
+    }
+
+    /* Montant rapide */
+    .quick-amounts {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .quick-btn {
+      background: rgba(245,158,11,0.08);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--gold);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .quick-btn:active, .quick-btn.selected {
+      background: rgba(245,158,11,0.2);
+      border-color: var(--gold);
+    }
+
+    /* Balance mini */
+    .agent-balance-mini {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .balance-mini-label { font-size: 10px; color: var(--text-secondary); font-weight: 600; }
+    .balance-mini-value { font-size: 16px; font-weight: 900; color: var(--gold); }
+    .balance-mini-sub { font-size: 9px; color: var(--text-secondary); margin-top: 1px; }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      z-index: 9999;
+      transition: transform 0.3s ease;
+      white-space: nowrap;
+      pointer-events: none;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.success { border-color: rgba(74,222,128,0.4); color: var(--success); }
+    #toast.error { border-color: rgba(239,68,68,0.4); color: var(--danger); }
+
+    /* ============ ONGLET BALANCE ============ */
+    .balance-hero {
+      background: linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(250,204,21,0.05) 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 20px;
+      margin-bottom: 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .balance-hero::before {
+      content: '';
+      position: absolute;
+      top: -30px; right: -30px;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle, rgba(245,158,11,0.12), transparent 70%);
+      border-radius: 50%;
+    }
+    .balance-hero-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .balance-hero-amount {
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--gold);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .balance-hero-sub {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 16px 14px;
+    }
+    .stat-card-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+    .stat-card-value {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--text);
+    }
+    .stat-card-value.green { color: var(--success); }
+    .stat-card-value.red { color: var(--danger); }
+
+    /* Historique */
+    .hist-title {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .hist-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .hist-item {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .hist-icon {
+      width: 32px;
+      height: 32px;
+      background: rgba(245,158,11,0.1);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .hist-info { flex: 1; min-width: 0; }
+    .hist-name {
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .hist-date { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+    .hist-amount {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--danger);
+      white-space: nowrap;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+    .empty-state .emoji { font-size: 32px; margin-bottom: 10px; }
+
+    .loading-dots {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      padding: 20px;
+    }
+    .loading-dots span {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: dotAnim 1.2s ease-in-out infinite;
+    }
+    .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotAnim {
+      0%,100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.3); }
+    }
+
+    /* Confirm overlay */
+    #confirmOverlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(4px);
+      align-items: flex-end;
+      justify-content: center;
+    }
+    #confirmOverlay.show { display: flex; }
+
+    .confirm-sheet {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px 20px 0 0;
+      padding: 24px 20px 36px;
+      width: 100%;
+      max-width: 440px;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .confirm-handle {
+      width: 36px; height: 4px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 2px;
+      margin: 0 auto 20px;
+    }
+    .confirm-title {
+      font-size: 16px; font-weight: 800;
+      text-align: center; margin-bottom: 6px;
+    }
+    .confirm-desc {
+      font-size: 12px; color: var(--text-secondary);
+      text-align: center; margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    .confirm-amount-box {
+      background: rgba(245,158,11,0.08);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .confirm-amount-label { font-size: 10px; color: var(--text-secondary); font-weight: 600; }
+    .confirm-amount-value { font-size: 28px; font-weight: 900; color: var(--gold); margin-top: 4px; }
+    .confirm-target { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
+    .confirm-target strong { color: var(--text); }
+
+    .confirm-btns { display: flex; gap: 10px; }
+    .btn-cancel {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 13px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+    .btn-confirm {
+      flex: 2;
+      background: linear-gradient(90deg, #f59e0b, #facc15);
+      border: none;
+      border-radius: 10px;
+      padding: 13px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      color: #0b1120;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+<!-- ============ ÉCRAN LOGIN ============ -->
+<div id="loginScreen">
+  <div class="login-logo">Anti-Paryaj</div>
+  <div class="login-sub">Espas Ajan</div>
+  <div class="login-card">
+    <h2>🔐 Konekte nan kont ou</h2>
+    <label class="field-label">Imèl</label>
+    <input type="email" id="loginEmail" class="inp" placeholder="agent@email.com" autocomplete="email">
+    <label class="field-label">Modpas</label>
+    <input type="password" id="loginPassword" class="inp" placeholder="••••••••" autocomplete="current-password">
+    <button class="btn-primary" id="loginBtn" onclick="doLogin()">Konekte</button>
+    <div id="loginError"></div>
+  </div>
+</div>
+
+<!-- ============ ÉCRAN PRINCIPAL ============ -->
+<div id="mainScreen">
+  <div class="agent-header">
+    <div class="agent-header-left">
+      <div class="logo">Anti-Paryaj</div>
+      <div class="agent-badge">Espas Ajan</div>
+    </div>
+    <div class="agent-header-right">
+      <div class="agent-code-chip" id="agentCodeChip">…</div>
+      <button class="btn-logout" onclick="doLogout()">Sòti</button>
+    </div>
+  </div>
+
+  <div class="tabs-bar">
+    <button class="tab-btn active" onclick="switchTab('credit')">💳 Krédite</button>
+    <button class="tab-btn" onclick="switchTab('balance')">📊 Balans mwen</button>
+  </div>
+
+  <!-- ===== ONGLET CRÉDITER ===== -->
+  <div id="tab-credit" class="tab-pane active">
+    <div class="section-title">Krédite yon jwè</div>
+    <div class="section-desc">Antre nimewo telefòn oswa imèl jwè a, mete montan, epi klike Ajoute.</div>
+
+    <!-- Balance mini de l'agent -->
+    <div class="agent-balance-mini">
+      <div>
+        <div class="balance-mini-label">Balans ou</div>
+        <div class="balance-mini-value" id="miniBalance">— G</div>
+        <div class="balance-mini-sub">Disponib</div>
+      </div>
+      <span style="font-size:22px">💰</span>
+    </div>
+
+    <!-- Toggle type de recherche -->
+    <div class="search-toggle">
+      <button class="active" id="togglePhone" onclick="setSearchMode('phone')">📱 Telefòn</button>
+      <button id="toggleEmail" onclick="setSearchMode('email')">✉️ Imèl</button>
+    </div>
+
+    <label class="field-label" id="searchLabel">Nimewo telefòn (509…)</label>
+    <input type="text" id="searchInput" class="inp" placeholder="50912345678" oninput="onSearchInput()">
+
+    <!-- Aperçu joueur trouvé -->
+    <div id="userPreview">
+      <div class="preview-avatar">👤</div>
+      <div class="preview-info">
+        <div class="preview-name" id="previewName">—</div>
+        <div class="preview-detail" id="previewDetail">—</div>
+      </div>
+      <div class="preview-kredi" id="previewKredi">—</div>
+    </div>
+
+    <label class="field-label">Montan (Goud)</label>
+    <div class="quick-amounts">
+      <button class="quick-btn" onclick="setAmount(100)">100</button>
+      <button class="quick-btn" onclick="setAmount(200)">200</button>
+      <button class="quick-btn" onclick="setAmount(500)">500</button>
+      <button class="quick-btn" onclick="setAmount(1000)">1 000</button>
+    </div>
+    <input type="number" id="amountInput" class="inp" placeholder="0" min="1" oninput="clearQuickSel()">
+
+    <button class="btn-primary" id="addBtn" onclick="prepareCredit()">Ajoute ✓</button>
+  </div>
+
+<!-- ===== ONGLET BALANCE ===== -->
+  <div id="tab-balance" class="tab-pane">
+    <div class="balance-hero">
+      <div class="balance-hero-label">Balans disponib</div>
+      <div class="balance-hero-amount" id="balanceAmount">— G</div>
+      <div class="balance-hero-sub">Balans ou rete yo</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-card-label">Total Vann</div>
+        <div class="stat-card-value red" id="statVendu">— G</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Nimewo kòd</div>
+        <div class="stat-card-value" id="statCode">—</div>
+      </div>
+    </div>
+
+    <div class="hist-title">Dènye transaksyon</div>
+    <div class="hist-list" id="histList">
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CONFIRM SHEET ===== -->
+<div id="confirmOverlay">
+  <div class="confirm-sheet">
+    <div class="confirm-handle"></div>
+    <div class="confirm-title">Konfime Dépò</div>
+    <div class="confirm-desc">Ou sou pwen krédite kont jwè sa a. Montan an ap soti nan balans ou.</div>
+    <div class="confirm-amount-box">
+      <div class="confirm-amount-label">Montan</div>
+      <div class="confirm-amount-value" id="confirmAmount">— G</div>
+      <div class="confirm-target">Pou: <strong id="confirmTarget">—</strong></div>
+    </div>
+    <div class="confirm-btns">
+      <button class="btn-cancel" onclick="closeConfirm()">Anile</button>
+      <button class="btn-confirm" id="confirmBtn" onclick="doCredit()">✓ Wi, Ajoute</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let currentAgent = null;   // { uid, email, code, balance, totalVendu }
+let foundUser = null;      // { uid, name, phone, email, kredi }
+let searchMode = 'phone';  // 'phone' | 'email'
+let searchTimer = null;
+
+
+// ============================================================
+// AUTH
+// ============================================================
+  auth.onAuthStateChanged(async (user) => {
+  if (!user) {
+    showScreen('login');
+    return;
+  }
+
+  // Vérifier que c'est bien un agent
+  try {
+    const agentDoc = await db.collection('agents').doc(user.uid).get();
+    if (!agentDoc.exists) {
+      showToast('❌ Ou pa yon ajan', 'error');
+      await auth().signOut();
+      return;
+    }
+    const data = agentDoc.data();
+    currentAgent = {
+      uid: user.uid,
+      email: user.email,
+      code: data.code || '—',
+      balance: data.balance || 0,
+      totalVendu: data.totalVendu || 0
+    };
+    showScreen('main');
+    refreshAgentUI();
+    loadHistory();
+  } catch (e) {
+    showToast('Erè koneksyon: ' + e.message, 'error');
+    await auth.signOut();
+  }
+});
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPassword').value;
+  const btn   = document.getElementById('loginBtn');
+  const err   = document.getElementById('loginError');
+
+  if (!email || !pass) { err.textContent = 'Ranpli tout chan yo.'; return; }
+
+  btn.disabled = true;
+  btn.textContent = '…';
+  err.textContent = '';
+
+  try {
+    await auth.signInWithEmailAndPassword(email, pass);
+    // onAuthStateChanged prend le relais
+  } catch (e) {
+    err.textContent = 'Imèl oswa modpas pa bon.';
+    btn.disabled = false;
+    btn.textContent = 'Konekte';
+  }
+}
+
+async function doLogout() {
+  await auth().signOut();
+  foundUser = null;
+  document.getElementById('searchInput').value = '';
+  document.getElementById('amountInput').value = '';
+  hideUserPreview();
+}
+
+// ============================================================
+// SCREENS / TABS
+// ============================================================
+function showScreen(name) {
+  document.getElementById('loginScreen').style.display = name === 'login' ? 'flex' : 'none';
+  document.getElementById('mainScreen').style.display  = name === 'main'  ? 'block' : 'none';
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', ['credit','balance'][i] === name);
+  });
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+
+  if (name === 'balance') loadHistory();
+}
+
+// ============================================================
+// SEARCH MODE
+// ============================================================
+function setSearchMode(mode) {
+  searchMode = mode;
+  document.getElementById('togglePhone').classList.toggle('active', mode === 'phone');
+  document.getElementById('toggleEmail').classList.toggle('active', mode === 'email');
+  document.getElementById('searchLabel').textContent =
+    mode === 'phone' ? 'Nimewo telefòn (509…)' : 'Imèl jwè a';
+  document.getElementById('searchInput').placeholder =
+    mode === 'phone' ? '50912345678' : 'joueur@email.com';
+  document.getElementById('searchInput').value = '';
+  hideUserPreview();
+  foundUser = null;
+}
+
+// ============================================================
+// RECHERCHE UTILISATEUR
+// ============================================================
+function onSearchInput() {
+  clearTimeout(searchTimer);
+  const val = document.getElementById('searchInput').value.trim();
+  if (!val || val.length < 5) { hideUserPreview(); foundUser = null; return; }
+  searchTimer = setTimeout(() => searchUser(val), 600);
+}
+
+async function searchUser(val) {
+  foundUser = null;
+  hideUserPreview();
+
+  try {
+    let snap;
+    if (searchMode === 'phone') {
+      // Normalise: enlève le + en tête si présent
+      const normalized = val.replace(/^\+/, '');
+      snap = await db.collection('users').where('phone', '==', normalized).limit(1).get();
+      if (snap.empty) {
+        // Essai avec le + au cas où
+        snap = await db.collection('users').where('phone', '==', '+' + normalized).limit(1).get();
+      }
+    } else {
+      snap = await db.collection('users').where('email', '==', val).limit(1).get();
+    }
+
+    if (snap.empty) return;
+
+    const doc = snap.docs[0];
+    const d = doc.data();
+    foundUser = {
+      uid: doc.id,
+      username: d.username || d.displayName || d.name || d.email || 'Jwè',  // ← CHANGEMENT ICI
+      phone: d.phone || '—',
+      email: d.email || '—',
+      kredi: d.kredi || 0
+    };
+
+    showUserPreview();
+  } catch (e) {
+    console.error('searchUser', e);
+  }
+}
+
+function showUserPreview() {
+  if (!foundUser) return;
+  const el = document.getElementById('userPreview');
+  el.classList.add('found');
+  document.getElementById('previewName').textContent = foundUser.username;
+  document.getElementById('previewDetail').textContent =
+    searchMode === 'phone' ? foundUser.phone : foundUser.email;
+  document.getElementById('previewKredi').textContent =
+    'Kredi: ' + foundUser.kredi.toLocaleString() + ' G';
+}
+
+function hideUserPreview() {
+  document.getElementById('userPreview').classList.remove('found');
+}
+
+// ============================================================
+// MONTANT
+// ============================================================
+function setAmount(val) {
+  document.getElementById('amountInput').value = val;
+  document.querySelectorAll('.quick-btn').forEach(b => {
+    b.classList.toggle('selected', parseInt(b.textContent.replace(/\s/g, '')) === val);
+  });
+}
+function clearQuickSel() {
+  document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('selected'));
+}
+
+// ============================================================
+// PRÉPARER LE CRÉDIT (affiche la confirmation)
+// ============================================================
+function prepareCredit() {
+  if (!foundUser) { showToast('Jwè pa jwenn', 'error'); return; }
+  const amount = parseInt(document.getElementById('amountInput').value);
+  if (!amount || amount <= 0) { showToast('Antre yon montan valid', 'error'); return; }
+  if (amount > (currentAgent.balance || 0)) {
+    showToast('Balans ou pa sifizant (' + currentAgent.balance + ' G)', 'error'); return;
+  }
+
+  document.getElementById('confirmAmount').textContent = amount.toLocaleString() + ' G';
+  document.getElementById('confirmTarget').textContent = foundUser.name + ' (' + (searchMode === 'phone' ? foundUser.phone : foundUser.email) + ')';
+  document.getElementById('confirmOverlay').classList.add('show');
+}
+
+function closeConfirm() {
+  document.getElementById('confirmOverlay').classList.remove('show');
+}
+
+// ============================================================
+// EXÉCUTER LE CRÉDIT (transaction Firestore)
+// ============================================================
+async function doCredit() {
+  const amount = parseInt(document.getElementById('amountInput').value);
+  const btn = document.getElementById('confirmBtn');
+  btn.disabled = true;
+  btn.textContent = '…';
+
+  try {
+    const agentRef = db.collection('agents').doc(currentAgent.uid);
+    const userRef  = db.collection('users').doc(foundUser.uid);
+
+    await db.runTransaction(async (tx) => {
+      const agentSnap = await tx.get(agentRef);
+      const userSnap  = await tx.get(userRef);
+
+      if (!agentSnap.exists) throw new Error('Agent introuvable');
+      if (!userSnap.exists)  throw new Error('Jwè introuvable');
+
+      const agentData = agentSnap.data();
+      const currentBalance = agentData.balance || 0;
+
+      if (currentBalance < amount) throw new Error('Balans ensifizant');
+
+      const newAgentBalance = currentBalance - amount;
+      const newTotalVendu   = (agentData.totalVendu || 0) + amount;
+      const newKredi        = (userSnap.data().kredi || 0) + amount;
+
+      tx.update(agentRef, {
+        balance: newAgentBalance,
+        totalVendu: newTotalVendu
+      });
+      tx.update(userRef, { 
+  balance: (userSnap.data().balance || 0) + amount,
+  kredi: newKredi 
+});
+
+      // Enregistrer dans l'historique de l'agent
+      const histRef = db.collection('agents').doc(currentAgent.uid)
+                          .collection('transactions').doc();
+      tx.set(histRef, {
+        amount,
+        userId: foundUser.uid,
+        userName: foundUser.name,
+        userPhone: foundUser.phone,
+        userEmail: foundUser.email,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        balanceBefore: currentBalance,
+        balanceAfter: newAgentBalance
+      });
+
+      // Mettre à jour l'état local
+      currentAgent.balance = newAgentBalance;
+      currentAgent.totalVendu = newTotalVendu;
+    });
+
+    closeConfirm();
+    showToast('✅ ' + amount.toLocaleString() + ' G ajoute pou ' + foundUser.name, 'success');
+
+    // Reset formulaire
+    document.getElementById('searchInput').value = '';
+    document.getElementById('amountInput').value = '';
+    clearQuickSel();
+    hideUserPreview();
+    foundUser = null;
+    refreshAgentUI();
+
+  } catch (e) {
+    showToast('Erè: ' + e.message, 'error');
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✓ Wi, Ajoute';
+  }
+}
+
+// ============================================================
+// INTERFACE AGENT
+// ============================================================
+function refreshAgentUI() {
+  if (!currentAgent) return;
+  document.getElementById('agentCodeChip').textContent = 'Kòd: ' + currentAgent.code;
+  document.getElementById('miniBalance').textContent = (currentAgent.balance || 0).toLocaleString() + ' G';
+  document.getElementById('balanceAmount').textContent = (currentAgent.balance || 0).toLocaleString() + ' G';
+  document.getElementById('statVendu').textContent = (currentAgent.totalVendu || 0).toLocaleString() + ' G';
+  document.getElementById('statCode').textContent = currentAgent.code || '—';
+}
+
+// ============================================================
+// HISTORIQUE TRANSACTIONS
+// ============================================================
+async function loadHistory() {
+  if (!currentAgent) return;
+  const list = document.getElementById('histList');
+  list.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+
+  try {
+    // Recharger aussi les données agent fraîches
+    const agentSnap = await db.collection('agents').doc(currentAgent.uid).get();
+    if (agentSnap.exists) {
+      const d = agentSnap.data();
+      currentAgent.balance    = d.balance    || 0;
+      currentAgent.totalVendu = d.totalVendu || 0;
+      refreshAgentUI();
+    }
+
+    const txSnap = await db.collection('agents').doc(currentAgent.uid)
+                              .collection('transactions')
+                              .orderBy('timestamp', 'desc')
+                              .limit(30)
+                              .get();
+
+    if (txSnap.empty) {
+      list.innerHTML = '<div class="empty-state"><div class="emoji">📭</div>Pa gen transaksyon ankò</div>';
+      return;
+    }
+
+    list.innerHTML = '';
+    txSnap.forEach(doc => {
+      const d = doc.data();
+      const date = d.timestamp ? new Date(d.timestamp.toDate()).toLocaleString('fr-HT', {
+        day: '2-digit', month: '2-digit', year: '2-digit',
+        hour: '2-digit', minute: '2-digit'
+      }) : '—';
+
+      const item = document.createElement('div');
+      item.className = 'hist-item';
+      item.innerHTML = `
+        <div class="hist-icon">💳</div>
+        <div class="hist-info">
+          <div class="hist-name">${escHtml(d.userName || '—')}</div>
+          <div class="hist-date">${date} · ${escHtml(d.userPhone || d.userEmail || '')}</div>
+        </div>
+        <div class="hist-amount">-${(d.amount||0).toLocaleString()} G</div>
+      `;
+      list.appendChild(item);
+    });
+  } catch (e) {
+    list.innerHTML = '<div class="empty-state"><div class="emoji">⚠️</div>' + e.message + '</div>';
+  }
+}
+
+// ============================================================
+// UTILITAIRES
+// ============================================================
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  setTimeout(() => t.className = '', 3200);
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
+
