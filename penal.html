@@ -1,0 +1,1830 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Penalty Duel Pro — Anti-Paryaj</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600;700&family=Rajdhani:wght@400;600;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:#060810;overflow:hidden;font-family:'Rajdhani',sans-serif;color:#fff}
+canvas{display:block;position:absolute;top:0;left:0;z-index:1;touch-action:none}
+
+/* ── SCREENS ── */
+.screen{position:absolute;inset:0;z-index:10;display:flex;flex-direction:column}
+.screen.hidden{display:none!important}
+
+/* ══ SHARED BUTTONS ══ */
+.btn{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:2px;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s,transform .1s;user-select:none;-webkit-tap-highlight-color:transparent;text-transform:uppercase}
+.btn:active{opacity:.8;transform:scale(.97)}
+.btn-xl{font-size:clamp(18px,5vw,22px);padding:15px 44px;border-radius:50px;width:min(92vw,340px)}
+.btn-md{font-size:15px;padding:11px 26px}
+.btn-sm{font-size:13px;padding:9px 18px}
+.btn-gold{background:linear-gradient(135deg,#ffd700,#cc8800);color:#000;box-shadow:0 6px 20px rgba(255,215,0,.4)}
+.btn-green{background:linear-gradient(135deg,#2dff5a,#00b336);color:#000;box-shadow:0 6px 20px rgba(45,255,90,.35)}
+.btn-red{background:linear-gradient(135deg,#ff5555,#cc1111);color:#fff}
+.btn-ghost{background:rgba(255,255,255,.07);color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.12)}
+.sep{width:min(92vw,360px);border:none;border-top:1px solid rgba(255,255,255,.08);margin:12px 0}
+
+/* Balance pill */
+.bal-pill{display:flex;align-items:center;gap:14px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:9px 20px;margin-bottom:16px}
+.bal-item{display:flex;flex-direction:column;align-items:center}
+.bal-lbl{font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.3);text-transform:uppercase}
+.bal-num{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#fff;letter-spacing:1px;line-height:1.1}
+.bal-num.k{color:#4ade80}
+.bal-sep{width:1px;height:28px;background:rgba(255,255,255,.1)}
+
+/* ══ START SCREEN ══ */
+#startScreen{background:linear-gradient(170deg,#060812 0%,#03050a 60%,#000 100%);align-items:center;justify-content:center;gap:0}
+.start-logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(44px,12vw,78px);color:#fff;letter-spacing:4px;line-height:.88;text-align:center;text-shadow:0 0 50px rgba(255,215,0,.3)}
+.start-logo span{color:#ffd700}
+.start-sub{font-size:10px;letter-spacing:4px;color:rgba(255,255,255,.3);text-transform:uppercase;margin:7px 0 4px}
+.start-badge{font-family:'Bebas Neue',sans-serif;font-size:clamp(18px,5vw,26px);color:#ffd700;letter-spacing:2px;margin-bottom:16px}
+.prize-box{background:linear-gradient(135deg,rgba(255,215,0,.1),rgba(255,180,0,.04));border:1px solid rgba(255,215,0,.3);border-radius:14px;padding:12px 24px;margin-bottom:16px;text-align:center;width:min(92vw,340px)}
+.prize-lbl{font-size:9px;letter-spacing:3px;color:rgba(255,215,0,.5);text-transform:uppercase}
+.prize-amt{font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,8vw,46px);color:#ffd700;letter-spacing:2px;text-shadow:0 0 20px rgba(255,215,0,.5);line-height:1.1}
+.prize-info{font-size:10px;color:rgba(255,255,255,.3);margin-top:3px}
+
+/* ══ FICHE SCREEN ══ */
+#ficheScreen{background:#060810;overflow:hidden}
+.fiche-top{flex-shrink:0;background:rgba(0,0,0,.6);border-bottom:1px solid rgba(255,215,0,.15);padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.fiche-top-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;color:#ffd700}
+.cart-pill{display:flex;align-items:center;gap:6px;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);border-radius:8px;padding:5px 11px;cursor:pointer;font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:#ffd700;letter-spacing:1px;-webkit-tap-highlight-color:transparent;position:relative}
+.cart-cnt{background:#ff4444;color:#fff;font-size:9px;font-weight:700;width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-left:2px}
+
+/* Category */
+.f-cat{padding:12px 12px 5px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;color:rgba(255,215,0,.7);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}
+.f-rule{font-size:9px;background:rgba(255,100,100,.12);border:1px solid rgba(255,100,100,.2);color:#ff9999;padding:2px 7px;border-radius:20px;letter-spacing:.5px;font-family:'Rajdhani',sans-serif;font-weight:400}
+.f-rule.ok{background:rgba(45,255,90,.08);border-color:rgba(45,255,90,.2);color:#7dffaa}
+
+/* Bet rows */
+.f-group{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;overflow:hidden;margin:0 8px 8px}
+.bet-row{display:flex;align-items:center;padding:10px 12px;border-top:1px solid rgba(255,255,255,.04);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .1s;position:relative}
+.bet-row:first-child{border-top:none}
+.bet-row:active{background:rgba(255,255,255,.05)}
+.bet-row.sel{background:rgba(255,215,0,.06);border-left:3px solid #ffd700}
+.bet-row.disabled{opacity:.3;pointer-events:none}
+.bet-left{flex:1;display:flex;flex-direction:column;gap:1px}
+.bet-name{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;color:#fff;letter-spacing:.2px}
+.bet-desc{font-size:11px;color:rgba(255,255,255,.4)}
+.bet-right{display:flex;align-items:center;gap:7px}
+.bet-cote{font-family:'Bebas Neue',sans-serif;font-size:18px;color:#ffd700;letter-spacing:1px;min-width:46px;text-align:right}
+.bet-row.sel .bet-cote{color:#2dff5a}
+.bet-chk{width:18px;height:18px;border-radius:50%;border:1.5px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent;flex-shrink:0;transition:all .15s}
+.bet-row.sel .bet-chk{background:#ffd700;border-color:#ffd700;color:#000;font-weight:700}
+.conflict-badge{position:absolute;right:50px;top:50%;transform:translateY(-50%);font-size:9px;background:rgba(255,50,50,.15);border:1px solid rgba(255,50,50,.3);color:#ff7777;padding:1px 6px;border-radius:10px;display:none}
+
+.fiche-bottom{flex-shrink:0;padding:10px 12px;background:rgba(0,0,0,.7);border-top:1px solid rgba(255,255,255,.07);display:flex;gap:8px}
+
+/* ══ CART SCREEN ══ */
+#cartScreen{background:#060810;overflow:hidden}
+.cart-top{flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.07);padding:10px 12px;display:flex;align-items:center;gap:10px}
+.cart-top-ttl{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;color:#fff}
+.c-list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 8px}
+.c-item{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:9px 12px;display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.c-left{display:flex;flex-direction:column}
+.c-cat{font-size:8px;letter-spacing:2px;color:rgba(255,255,255,.3);text-transform:uppercase}
+.c-name{font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;color:#fff}
+.c-right{display:flex;align-items:center;gap:7px}
+.c-cote{font-family:'Bebas Neue',sans-serif;font-size:18px;color:#ffd700}
+.c-del{background:rgba(255,50,50,.1);border:1px solid rgba(255,50,50,.2);color:#ff7777;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:13px;-webkit-tap-highlight-color:transparent}
+.c-empty{color:rgba(255,255,255,.2);font-size:13px;text-align:center;padding:30px 20px}
+.total-box{margin:0 8px 8px;background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.2);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
+.total-lbl{font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.35);text-transform:uppercase;margin-bottom:2px}
+.total-cote{font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,8vw,44px);color:#ffd700;letter-spacing:2px;text-shadow:0 0 14px rgba(255,215,0,.4)}
+.mise-box{margin:0 8px 8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:11px 13px}
+.mise-lbl{font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:7px}
+.mise-row{display:flex;align-items:center;gap:8px}
+.mise-inp{background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 10px;font-family:'Bebas Neue',sans-serif;font-size:26px;color:#ffd700;letter-spacing:2px;width:100%;text-align:center;outline:none;-webkit-appearance:none}
+.mise-inp:focus{border-color:#ffd700}
+.mise-cur{font-family:'Bebas Neue',sans-serif;font-size:18px;color:rgba(255,255,255,.3)}
+.mise-quick{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+.mise-q{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:5px 10px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:rgba(255,255,255,.5);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.mise-q:active{background:rgba(255,215,0,.12);border-color:#ffd700;color:#ffd700}
+.gain-prev{font-size:12px;color:rgba(255,255,255,.35);margin-top:5px;text-align:center}
+.gain-prev span{color:#ffd700;font-weight:700}
+.cart-bottom{flex-shrink:0;background:rgba(6,8,16,.98);border-top:1px solid rgba(255,255,255,.07);padding:10px 12px;display:flex;gap:8px}
+
+/* ══ IN-GAME HUD ══ */
+#gameHud{position:absolute;top:0;left:0;right:0;z-index:20;pointer-events:none;display:none;flex-direction:column}
+.match-bar{background:rgba(0,0,0,.82);border-bottom:1px solid rgba(255,255,255,.06);padding:7px 12px;display:flex;align-items:center;justify-content:space-between}
+.mb-side{display:flex;flex-direction:column;align-items:center;min-width:64px}
+.mb-name{font-size:8px;letter-spacing:2px;color:rgba(255,255,255,.35);text-transform:uppercase}
+.mb-score{font-family:'Bebas Neue',sans-serif;font-size:clamp(26px,7vw,38px);color:#fff;letter-spacing:2px;line-height:1}
+.mb-score.p{color:#2dff5a}
+.mb-score.a{color:#ff5555}
+.mb-center{display:flex;flex-direction:column;align-items:center;gap:1px;flex:1}
+.mb-vs{font-family:'Bebas Neue',sans-serif;font-size:13px;color:rgba(255,255,255,.2);letter-spacing:3px}
+.mb-turn{font-size:9px;letter-spacing:2px;color:#ffd700;text-transform:uppercase;text-align:center}
+.mb-half{font-family:'Bebas Neue',sans-serif;font-size:11px;color:rgba(255,255,255,.3);letter-spacing:1px}
+.dots-row{background:rgba(0,0,0,.5);padding:4px 12px;display:flex;align-items:center;justify-content:center;gap:3px}
+.pdot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, .2);
+  background: rgba(255, 255, 255, .06);
+  transition: all .2s;
+  flex-shrink: 0;
+}
+
+/* Tous les buts (joueur ET IA) → VERT */
+.pdot.p-hit,
+.pdot.ai-hit {
+  background: #2dff5a !important;
+  border-color: #2dff5a !important;
+  box-shadow: 0 0 5px rgba(45, 255, 90, 0.7) !important;
+}
+
+/* Tous les ratés et arrêts (joueur ET IA) → ROUGE */
+.pdot.p-miss,
+.pdot.ai-save {
+  background: #ff4444 !important;
+  border-color: #ff4444 !important;
+  box-shadow: 0 0 4px rgba(255, 50, 50, 0.6) !important;
+}
+.pdot.cur{border-color:#ffd700;animation:dp .7s ease infinite alternate}
+@keyframes dp{from{box-shadow:0 0 3px rgba(255,215,0,.4)}to{box-shadow:0 0 9px rgba(255,215,0,.9)}}
+.dots-sep{width:1px;height:12px;background:rgba(255,255,255,.15);margin:0 3px}
+
+/* Timer bar */
+#timerBar{position:absolute;top:88px;left:0;right:0;z-index:21;pointer-events:none;display:none;padding:0 12px}
+.timer-track{height:4px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden}
+.timer-fill{height:100%;background:#ffd700;border-radius:4px;transition:width .1s linear;width:100%}
+#timerNumDisplay{font-family:'Bebas Neue',sans-serif;font-size:13px;color:#ffd700;text-align:right;letter-spacing:1px;margin-top:2px}
+
+/* Phase label */
+#phaseLabel{position:absolute;top:96px;left:50%;transform:translateX(-50%);font-family:'Bebas Neue',sans-serif;font-size:clamp(13px,3.8vw,18px);letter-spacing:3px;padding:4px 14px;border-radius:20px;white-space:nowrap;z-index:21;pointer-events:none;transition:opacity .3s;opacity:0}
+#phaseLabel.shoot{background:rgba(45,255,90,.12);border:1px solid rgba(45,255,90,.35);color:#2dff5a;opacity:1}
+#phaseLabel.defend{background:rgba(255,50,50,.12);border:1px solid rgba(255,50,50,.35);color:#ff5555;opacity:1}
+#phaseLabel.half{background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.35);color:#ffd700;opacity:1;font-size:clamp(16px,5vw,24px)}
+
+/* Feedback toast */
+#feedback{position:absolute;top:130px;left:50%;transform:translateX(-50%);font-family:'Bebas Neue',sans-serif;font-size:clamp(13px,4vw,18px);letter-spacing:2px;color:#ffd700;z-index:22;pointer-events:none;opacity:0;transition:opacity .25s;white-space:nowrap;text-align:center}
+#feedback.vis{opacity:1}
+
+/* AI Tell indicator */
+#aiTell{position:absolute;z-index:21;pointer-events:none;opacity:0;transition:opacity .3s;font-size:22px}
+
+/* Swipe guide */
+#swipeGuide{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);z-index:20;pointer-events:none;display:none;flex-direction:column;align-items:center;gap:3px}
+.sg-arrow{font-size:24px;animation:sup 1.4s ease-in-out infinite}
+@keyframes sup{0%{transform:translateY(4px);opacity:.2}50%{transform:translateY(-4px);opacity:1}100%{transform:translateY(4px);opacity:.2}}
+.sg-txt{font-size:8px;letter-spacing:3px;color:rgba(255,255,255,.2);text-transform:uppercase}
+
+/* Defend buttons with timing indicator */
+#defendButtons{position:absolute;bottom:0;left:0;right:0;z-index:22;display:none;padding:10px 12px 16px;background:linear-gradient(transparent,rgba(0,0,0,.85));flex-direction:column;gap:8px;align-items:stretch}
+.def-timing{text-align:center;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,.35);text-transform:uppercase;height:14px}
+.def-timing.early{color:#ff7777}
+.def-timing.ok{color:#2dff5a}
+.def-row{display:flex;gap:10px;justify-content:center}
+.def-btn{font-family:'Bebas Neue',sans-serif;font-size:clamp(14px,4vw,20px);letter-spacing:2px;border:none;border-radius:12px;cursor:pointer;padding:12px 0;flex:1;max-width:95px;display:flex;flex-direction:column;align-items:center;gap:3px;-webkit-tap-highlight-color:transparent;transition:transform .1s,opacity .1s,box-shadow .1s;user-select:none}
+.def-btn:active{transform:scale(.92)}
+.def-icon{font-size:20px;line-height:1}
+.def-lbl{font-size:10px;letter-spacing:1px}
+.def-btn.left{background:linear-gradient(135deg,#122060,#0a1440);border:1px solid rgba(80,120,255,.3);color:#7eb3ff}
+.def-btn.center{background:linear-gradient(135deg,#1a1060,#0e0840);border:1px solid rgba(160,80,255,.3);color:#c07bff}
+.def-btn.right{background:linear-gradient(135deg,#122060,#0a1440);border:1px solid rgba(80,120,255,.3);color:#7eb3ff}
+.def-btn.chosen{box-shadow:0 0 12px rgba(255,215,0,.6);border-color:#ffd700}
+.def-btn.wrong{opacity:.3}
+.def-btn.good{box-shadow:0 0 12px rgba(45,255,90,.6);border-color:#2dff5a}
+
+/* Power bar */
+.power-bar-wrap{position:absolute;bottom:95px;right:14px;z-index:23;pointer-events:none;display:none;flex-direction:column;align-items:flex-end;gap:3px}
+.power-bar-lbl{font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.4);text-transform:uppercase}
+.power-bar-track{width:8px;height:70px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
+.power-bar-fill{width:100%;background:#2dff5a;border-radius:4px;transition:height .05s}
+.power-val{font-family:'Bebas Neue',sans-serif;font-size:14px;color:#ffd700;letter-spacing:1px}
+
+/* Announcement */
+#announcement {
+  position: absolute;
+  top: 34%;
+  left: 50%;
+  transform: translateX(-50%) scale(0);
+  z-index: 30;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(46px, 13vw, 84px);
+  letter-spacing: 4px;
+  pointer-events: none;
+  opacity: 0;
+  transition: transform .28s cubic-bezier(.34,1.56,.64,1), opacity .2s;
+  text-align: center;
+  white-space: nowrap;
+}
+
+#announcement.show {
+  transform: translateX(-50%) scale(1);
+  opacity: 1;
+}
+
+/* Tous les buts (joueur ET IA) → VERT */
+#announcement.but,
+#announcement.ai-goal {
+  color: #2dff5a !important;
+  text-shadow: 0 0 28px rgba(45, 255, 90, 0.9) !important;
+}
+
+/* Tous les ratés et arrêts → ROUGE */
+#announcement.saved,
+#announcement.miss {
+  color: #ff4444 !important;
+  text-shadow: 0 0 22px rgba(255, 50, 50, 0.8) !important;
+}
+
+/* Exception pour "TROP TÔT" */
+#announcement.early {
+  color: #ff7777 !important;
+  font-size: clamp(20px, 6vw, 40px) !important;
+}
+
+/* Exception pour "MI-TEMPS" */
+#announcement.half-time {
+  color: #ffd700 !important;
+  font-size: clamp(22px, 7vw, 46px) !important;
+}
+
+/* Flashes */
+#goalFlash,#missFlash,#savedFlash,#earlyFlash{position:absolute;inset:0;z-index:25;opacity:0;pointer-events:none;transition:opacity .08s}
+#goalFlash{background:rgba(45,255,90,.2)}
+#missFlash{background:rgba(255,50,50,.2)}
+#savedFlash{background:rgba(255,215,0,.15)}
+#earlyFlash{background:rgba(255,100,100,.25)}
+
+/* ══ GAME OVER / RESULTS ══ */
+#gameOverScreen{background:radial-gradient(ellipse at 50% 25%,#0d0d22 0%,#040408 70%);z-index:30;overflow:hidden}
+.go-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;align-items:center;padding:16px 12px 24px}
+.go-ttl{font-family:'Bebas Neue',sans-serif;font-size:clamp(50px,14vw,90px);letter-spacing:5px;line-height:.85;text-align:center;margin-bottom:4px}
+.go-ttl.win{color:#ffd700;text-shadow:0 0 50px rgba(255,215,0,.6)}
+.go-ttl.lose{color:#ff3333;text-shadow:0 0 50px rgba(255,50,50,.5)}
+.go-sub{font-size:10px;letter-spacing:3px;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:14px}
+.score-final{display:flex;align-items:center;gap:16px;margin-bottom:14px}
+.sf-side{text-align:center}
+.sf-nm{font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:2px}
+.sf-sc{font-family:'Bebas Neue',sans-serif;font-size:clamp(44px,12vw,72px);letter-spacing:2px;line-height:1}
+.sf-sc.p{color:#2dff5a} .sf-sc.a{color:#ff5555}
+.sf-sep{font-family:'Bebas Neue',sans-serif;font-size:22px;color:rgba(255,255,255,.2)}
+.fiche-results {
+  width: min(96vw, 400px);
+  background: rgba(255, 255, 255, .03);
+  border: 1px solid rgba(255, 255, 255, .07);
+  border-radius: 14px;
+  margin-bottom: 12px;
+  max-height: 450px;           /* Hauteur fixe */
+  overflow-y: auto;            /* Scroll sur toute la carte */
+  -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 480px) {
+  .fiche-results {
+    max-height: 400px;  /* Au lieu de 260px */
+  }
+}
+
+.fr-head {
+  background: rgba(255, 215, 0, .08);
+  border-bottom: 1px solid rgba(255, 215, 0, .15);
+  padding: 8px 14px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: #ffd700;
+  position: sticky;            /* L'en-tête reste visible en scrollant */
+  top: 0;
+  z-index: 2;
+}
+
+#ficheResultsBody {
+  /* Aucune propriété spéciale nécessaire */
+}
+
+.fr-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, .04);
+  font-size: 13px;
+}
+
+.fr-row:last-child {
+  border-bottom: none;
+}
+
+.fr-name {
+  color: rgba(255, 255, 255, .65);
+  flex: 1;
+}
+
+.fr-cote {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  color: #ffd700;
+  margin: 0 8px;
+  min-width: 38px;
+  text-align: right;
+}
+
+.fr-result {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+/* Finance card */
+.finance-card{width:min(96vw,400px);background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 16px;margin-bottom:14px}
+.fc-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:clamp(12px,3.5vw,14px)}
+.fc-row:last-child{border-bottom:none}
+.fc-l{color:rgba(255,255,255,.4)}
+.fc-r{font-weight:700}
+.fc-r.g{color:#2dff5a} .fc-r.gold{color:#ffd700} .fc-r.r{color:#ff5555}
+.go-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+</style>
+</head>
+<body>
+  
+  <!-- ══ START ══ -->
+<div class="screen" id="startScreen">
+  <div class="start-logo">PENALTY<br><span>DUEL</span> PRO</div>
+  <div class="start-sub">Anti-Paryaj · Mode Duel Complet</div>
+  <div class="start-badge">⚽ 2 MI-TEMPS · 20 TIRS TOTAL</div>
+  <div class="bal-pill">
+    <div class="bal-item"><div class="bal-lbl">Balans</div><div class="bal-num" id="balVal">—</div></div>
+    <div class="bal-sep"></div>
+    <div class="bal-item"><div class="bal-lbl">Kredi</div><div class="bal-num k" id="krediVal">—</div></div>
+  </div>
+  <div class="prize-box">
+    <div class="prize-lbl">🏆 Gain selon Mise × Côte</div>
+    <div class="prize-amt">FICHE DE PARIS</div>
+    <div class="prize-info">Crée ta fiche · Mise · Joue · Encaisse</div>
+  </div>
+  <button class="btn btn-xl btn-gold" id="btnGoFiche">🎯 CRÉER MA FICHE</button>
+  <hr class="sep">
+  <div style="font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.2);text-transform:uppercase;text-align:center;max-width:280px;line-height:1.7">
+    10 tirs / mi-temps · Tireur & Gardien alternés<br>Timing compte · Puissance compte
+  </div>
+</div>
+
+<!-- ══ FICHE SCREEN ══ -->
+<div class="screen hidden" id="ficheScreen">
+  <div class="fiche-top">
+    <div class="fiche-top-title">📋 MA FICHE</div>
+    <div class="cart-pill" id="btnOpenCart">🛒 PANIER <div class="cart-cnt" id="cartCnt" style="display:none">0</div></div>
+  </div>
+  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 0 80px">
+
+    <!-- 1. RÉSULTAT DU MATCH -->
+    <div class="f-cat">🏆 RÉSULTAT MATCH (1X2) <span class="f-rule">Victoire IA grisée</span></div>
+    <div class="f-group">
+      <div class="bet-row" data-id="res_1" data-cat="result" data-cote="1.85" data-excl="result"><div class="bet-left"><div class="bet-name">1 — Victoire Joueur</div><div class="bet-desc">Tu marques plus de buts total</div></div><div class="bet-right"><div class="bet-cote">×1.85</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="res_x" data-cat="result" data-cote="3.40" data-excl="result"><div class="bet-left"><div class="bet-name">X — Match Nul</div><div class="bet-desc">Scores finaux identiques</div></div><div class="bet-right"><div class="bet-cote">×3.40</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row disabled" data-id="res_2" data-cat="result"><div class="bet-left"><div class="bet-name">2 — Victoire IA</div><div class="bet-desc">Indisponible — Anti-Paryaj</div></div><div class="bet-right"><div class="bet-cote">—</div><div class="bet-chk"></div></div></div>
+    </div>
+
+    <!-- 2. DOUBLE CHANCE MATCH -->
+    <div class="f-cat">⚡ DOUBLE CHANCE MATCH <span class="f-rule">Incompatible avec 1X2</span></div>
+    <div class="f-group">
+      <div class="bet-row" data-id="dc_1x" data-cat="dc_match" data-cote="1.20" data-excl="result,dc_match"><div class="bet-left"><div class="bet-name">1X — Joueur gagne ou Nul</div><div class="bet-desc">Tout sauf victoire IA</div></div><div class="bet-right"><div class="bet-cote">×1.20</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="dc_12" data-cat="dc_match" data-cote="1.10" data-excl="result,dc_match"><div class="bet-left"><div class="bet-name">12 — Victoire de l'un ou l'autre</div><div class="bet-desc">Pas de nul</div></div><div class="bet-right"><div class="bet-cote">×1.10</div><div class="bet-chk">✓</div></div></div>
+    </div>
+
+    <!-- 3. RÉSULTAT PAR MI-TEMPS -->
+    <div class="f-cat">📍 RÉSULTAT PAR MI-TEMPS</div>
+    <div class="f-group">
+      <div class="bet-row" data-id="half1_1" data-cat="half1_res" data-cote="1.75" data-excl="half1_res"><div class="bet-left"><div class="bet-name">1ère MT — Joueur gagne</div><div class="bet-desc">Plus de buts en 1ère mi-temps</div></div><div class="bet-right"><div class="bet-cote">×1.75</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="half1_x" data-cat="half1_res" data-cote="3.20" data-excl="half1_res"><div class="bet-left"><div class="bet-name">1ère MT — Nul</div></div><div class="bet-right"><div class="bet-cote">×3.20</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="half1_dc1x" data-cat="half1_dc" data-cote="1.15" data-excl="half1_res,half1_dc"><div class="bet-left"><div class="bet-name">1ère MT — Double Chance 1X</div></div><div class="bet-right"><div class="bet-cote">×1.15</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="half2_1" data-cat="half2_res" data-cote="1.75" data-excl="half2_res"><div class="bet-left"><div class="bet-name">2ème MT — Joueur gagne</div></div><div class="bet-right"><div class="bet-cote">×1.75</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="half2_x" data-cat="half2_res" data-cote="3.20" data-excl="half2_res"><div class="bet-left"><div class="bet-name">2ème MT — Nul</div></div><div class="bet-right"><div class="bet-cote">×3.20</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="half2_dc1x" data-cat="half2_dc" data-cote="1.15" data-excl="half2_res,half2_dc"><div class="bet-left"><div class="bet-name">2ème MT — Double Chance 1X</div></div><div class="bet-right"><div class="bet-cote">×1.15</div><div class="bet-chk">✓</div></div></div>
+    </div>
+
+    <!-- 4. TOTAL BUTS MATCH -->
+    <div class="f-cat">⚽ TOTAL BUTS — MATCH <span class="f-rule">Over/Under</span></div>
+    <div class="f-group">
+      <div class="bet-row" data-id="tb_o4" data-cat="tb_match" data-cote="1.90" data-excl="tb_match"><div class="bet-left"><div class="bet-name">Over 4.5 buts</div><div class="bet-desc">5 buts ou plus au total</div></div><div class="bet-right"><div class="bet-cote">×1.90</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="tb_u5" data-cat="tb_match" data-cote="1.80" data-excl="tb_match"><div class="bet-left"><div class="bet-name">Under 5.5 buts</div><div class="bet-desc">5 buts ou moins au total</div></div><div class="bet-right"><div class="bet-cote">×1.80</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="tb_o6" data-cat="tb_match" data-cote="2.10" data-excl="tb_match"><div class="bet-left"><div class="bet-name">Over 6.5 buts</div><div class="bet-desc">7 buts ou plus au total</div></div><div class="bet-right"><div class="bet-cote">×2.10</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="tb_u7" data-cat="tb_match" data-cote="1.65" data-excl="tb_match"><div class="bet-left"><div class="bet-name">Under 7.5 buts</div></div><div class="bet-right"><div class="bet-cote">×1.65</div><div class="bet-chk">✓</div></div></div>
+    </div>
+
+    <!-- 5. TOTAL BUTS PAR MI-TEMPS -->
+    <div class="f-cat">⚽ TOTAL BUTS — PAR MI-TEMPS</div>
+    <div class="f-group">
+      <div class="bet-row" data-id="tb1_o2" data-cat="tb_h1" data-cote="1.85" data-excl="tb_h1"><div class="bet-left"><div class="bet-name">1ère MT Over 2.5</div><div class="bet-desc">3 buts ou + en 1ère mi-temps</div></div><div class="bet-right"><div class="bet-cote">×1.85</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="tb1_u3" data-cat="tb_h1" data-cote="1.75" data-excl="tb_h1"><div class="bet-left"><div class="bet-name">1ère MT Under 3.5</div></div><div class="bet-right"><div class="bet-cote">×1.75</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="tb2_o2" data-cat="tb_h2" data-cote="1.85" data-excl="tb_h2"><div class="bet-left"><div class="bet-name">2ème MT Over 2.5</div></div><div class="bet-right"><div class="bet-cote">×1.85</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="tb2_u3" data-cat="tb_h2" data-cote="1.75" data-excl="tb_h2"><div class="bet-left"><div class="bet-name">2ème MT Under 3.5</div></div><div class="bet-right"><div class="bet-cote">×1.75</div><div class="bet-chk">✓</div></div></div>
+    </div>
+
+    <!-- 6. TOTAL ARRÊTS MATCH -->
+    <div class="f-cat">🧤 TOTAL ARRÊTS — MATCH</div>
+    <div class="f-group">
+      <div class="bet-row" data-id="ta_o3" data-cat="ta_match" data-cote="2.00" data-excl="ta_match"><div class="bet-left"><div class="bet-name">Over 3.5 arrêts</div><div class="bet-desc">4 arrêts ou plus au total</div></div><div class="bet-right"><div class="bet-cote">×2.00</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="ta_u4" data-cat="ta_match" data-cote="1.70" data-excl="ta_match"><div class="bet-left"><div class="bet-name">Under 4.5 arrêts</div></div><div class="bet-right"><div class="bet-cote">×1.70</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="ta1_o1" data-cat="ta_h1" data-cote="1.90" data-excl="ta_h1"><div class="bet-left"><div class="bet-name">1ère MT Over 1.5 arrêts</div></div><div class="bet-right"><div class="bet-cote">×1.90</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="ta2_o1" data-cat="ta_h2" data-cote="1.90" data-excl="ta_h2"><div class="bet-left"><div class="bet-name">2ème MT Over 1.5 arrêts</div></div><div class="bet-right"><div class="bet-cote">×1.90</div><div class="bet-chk">✓</div></div></div>
+    </div>
+
+    <!-- 7. BUTS PAR ÉQUIPE -->
+    <div class="f-cat">🎯 BUTS PAR ÉQUIPE</div>
+    <div class="f-group">
+      <div class="bet-row" data-id="bp_o3" data-cat="bp_match" data-cote="1.75" data-excl="bp_match"><div class="bet-left"><div class="bet-name">Joueur Over 2.5 buts</div><div class="bet-desc">Joueur marque 3+ buts match total</div></div><div class="bet-right"><div class="bet-cote">×1.75</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="bp_u3" data-cat="bp_match" data-cote="1.85" data-excl="bp_match"><div class="bet-left"><div class="bet-name">Joueur Under 3.5 buts</div></div><div class="bet-right"><div class="bet-cote">×1.85</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="bai_o2" data-cat="bai_match" data-cote="1.80" data-excl="bai_match"><div class="bet-left"><div class="bet-name">IA Over 1.5 buts</div><div class="bet-desc">IA marque 2+ buts match total</div></div><div class="bet-right"><div class="bet-cote">×1.80</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="bai_u3" data-cat="bai_match" data-cote="1.70" data-excl="bai_match"><div class="bet-left"><div class="bet-name">IA Under 2.5 buts</div></div><div class="bet-right"><div class="bet-cote">×1.70</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="bp1_o1" data-cat="bp_h1" data-cote="1.60" data-excl="bp_h1"><div class="bet-left"><div class="bet-name">Joueur Over 0.5 buts 1ère MT</div></div><div class="bet-right"><div class="bet-cote">×1.60</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="bai_h1_o1" data-cat="bai_h1" data-cote="1.60" data-excl="bai_h1"><div class="bet-left"><div class="bet-name">IA Over 0.5 buts 1ère MT</div></div><div class="bet-right"><div class="bet-cote">×1.60</div><div class="bet-chk">✓</div></div></div>
+    </div>
+
+    <!-- 8. ARRÊTS PAR ÉQUIPE -->
+    <div class="f-cat">🧤 ARRÊTS PAR ÉQUIPE</div>
+    <div class="f-group">
+      <div class="bet-row" data-id="ap_o2" data-cat="ap_match" data-cote="1.80" data-excl="ap_match"><div class="bet-left"><div class="bet-name">Joueur (Gardien) Over 1.5 arrêts</div><div class="bet-desc">Joueur arrête 2+ tirs de l'IA</div></div><div class="bet-right"><div class="bet-cote">×1.80</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="ap_u3" data-cat="ap_match" data-cote="1.90" data-excl="ap_match"><div class="bet-left"><div class="bet-name">Joueur (Gardien) Under 2.5 arrêts</div></div><div class="bet-right"><div class="bet-cote">×1.90</div><div class="bet-chk">✓</div></div></div>
+    </div>
+
+    <!-- 9. ÉCART DE BUTS -->
+    <div class="f-cat">📊 ÉCART DE BUTS — MATCH TOTAL</div>
+    <div class="f-group">
+      <div class="bet-row" data-id="eb_1" data-cat="ecart_buts" data-cote="2.50" data-excl="ecart_buts"><div class="bet-left"><div class="bet-name">Écart exactement 1 but</div></div><div class="bet-right"><div class="bet-cote">×2.50</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="eb_2" data-cat="ecart_buts" data-cote="3.20" data-excl="ecart_buts"><div class="bet-left"><div class="bet-name">Écart exactement 2 buts</div></div><div class="bet-right"><div class="bet-cote">×3.20</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="eb_3p" data-cat="ecart_buts" data-cote="4.50" data-excl="ecart_buts"><div class="bet-left"><div class="bet-name">Écart 3 buts ou plus</div></div><div class="bet-right"><div class="bet-cote">×4.50</div><div class="bet-chk">✓</div></div></div>
+    </div>
+    
+    <!-- 10. ÉCART D'ARRÊTS -->
+    <div class="f-cat">📊 ÉCART D'ARRÊTS — MATCH TOTAL</div>
+    <div class="f-group">
+      <div class="bet-row" data-id="ea_0" data-cat="ecart_arrets" data-cote="1.80" data-excl="ecart_arrets"><div class="bet-left"><div class="bet-name">Écart 0 arrêt (égalité d'arrêts)</div></div><div class="bet-right"><div class="bet-cote">×1.80</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="ea_1p" data-cat="ecart_arrets" data-cote="2.20" data-excl="ecart_arrets"><div class="bet-left"><div class="bet-name">Écart 1+ arrêt</div></div><div class="bet-right"><div class="bet-cote">×2.20</div><div class="bet-chk">✓</div></div></div>
+    </div>
+
+    <!-- 11. SCORE EXACT MATCH -->
+    <div class="f-cat">🎯 SCORE EXACT — MATCH TOTAL <span class="f-rule">10 tirs chaque</span></div>
+    <div class="f-group">
+      <div class="bet-row" data-id="se_5_4" data-cat="score_exact" data-cote="5.50" data-excl="score_exact"><div class="bet-left"><div class="bet-name">5 — 4</div><div class="bet-desc">Joueur 5 buts, IA 4 buts</div></div><div class="bet-right"><div class="bet-cote">×5.50</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="se_5_3" data-cat="score_exact" data-cote="7.20" data-excl="score_exact"><div class="bet-left"><div class="bet-name">5 — 3</div></div><div class="bet-right"><div class="bet-cote">×7.20</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="se_6_4" data-cat="score_exact" data-cote="6.80" data-excl="score_exact"><div class="bet-left"><div class="bet-name">6 — 4</div></div><div class="bet-right"><div class="bet-cote">×6.80</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="se_5_5" data-cat="score_exact" data-cote="4.20" data-excl="score_exact"><div class="bet-left"><div class="bet-name">5 — 5 (Nul)</div></div><div class="bet-right"><div class="bet-cote">×4.20</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="se_4_4" data-cat="score_exact" data-cote="5.00" data-excl="score_exact"><div class="bet-left"><div class="bet-name">4 — 4 (Nul)</div></div><div class="bet-right"><div class="bet-cote">×5.00</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="se_7_3" data-cat="score_exact" data-cote="12.00" data-excl="score_exact"><div class="bet-left"><div class="bet-name">7 — 3</div></div><div class="bet-right"><div class="bet-cote">×12.00</div><div class="bet-chk">✓</div></div></div>
+    </div>
+
+    <!-- 12. SCORE EXACT PAR MI-TEMPS -->
+    <div class="f-cat">🎯 SCORE EXACT — PAR MI-TEMPS <span class="f-rule">5 tirs chaque / MT</span></div>
+    <div class="f-group">
+      <div class="bet-row" data-id="seh1_3_2" data-cat="se_h1" data-cote="4.50" data-excl="se_h1"><div class="bet-left"><div class="bet-name">1ère MT : 3 — 2</div></div><div class="bet-right"><div class="bet-cote">×4.50</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="seh1_2_2" data-cat="se_h1" data-cote="3.80" data-excl="se_h1"><div class="bet-left"><div class="bet-name">1ère MT : 2 — 2</div></div><div class="bet-right"><div class="bet-cote">×3.80</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="seh1_3_1" data-cat="se_h1" data-cote="6.00" data-excl="se_h1"><div class="bet-left"><div class="bet-name">1ère MT : 3 — 1</div></div><div class="bet-right"><div class="bet-cote">×6.00</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="seh2_3_2" data-cat="se_h2" data-cote="4.50" data-excl="se_h2"><div class="bet-left"><div class="bet-name">2ème MT : 3 — 2</div></div><div class="bet-right"><div class="bet-cote">×4.50</div><div class="bet-chk">✓</div></div></div>
+      <div class="bet-row" data-id="seh2_2_2" data-cat="se_h2" data-cote="3.80" data-excl="se_h2"><div class="bet-left"><div class="bet-name">2ème MT : 2 — 2</div></div><div class="bet-right"><div class="bet-cote">×3.80</div><div class="bet-chk">✓</div></div></div>
+    </div>
+
+  </div>
+  <div class="fiche-bottom">
+    <button class="btn btn-sm btn-ghost" id="btnBackStart" style="flex:1">← Retour</button>
+    <button class="btn btn-sm btn-gold" id="btnGoCart" style="flex:2">Panier →</button>
+  </div>
+</div>
+
+<!-- ══ CART SCREEN ══ -->
+<div class="screen hidden" id="cartScreen">
+  <div class="cart-top">
+    <button class="btn btn-sm btn-ghost" id="btnBackFiche">←</button>
+    <div class="cart-top-ttl">🛒 MON PANIER</div>
+  </div>
+  <div class="c-list" id="cartItems"></div>
+  <div class="total-box">
+    <div><div class="total-lbl">Côte Totale</div><div class="total-cote" id="totalCoteDisp">×1.00</div></div>
+    <div style="text-align:right"><div class="total-lbl">Sélections</div><div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:#fff" id="totalSel">0</div></div>
+  </div>
+  <div class="mise-box">
+    <div class="mise-lbl">💰 Mise (min 10 G)</div>
+    <div class="mise-row">
+      <input class="mise-inp" type="number" id="miseInput" min="10" step="10" value="100">
+      <div class="mise-cur">G</div>
+    </div>
+    <div class="mise-quick">
+      <div class="mise-q" data-v="10">10G</div><div class="mise-q" data-v="50">50G</div>
+      <div class="mise-q" data-v="100">100G</div><div class="mise-q" data-v="250">250G</div>
+      <div class="mise-q" data-v="500">500G</div>
+    </div>
+    <div class="gain-prev">Gain potentiel : <span id="gainDisp">—</span></div>
+  </div>
+  <div class="cart-bottom">
+    <button class="btn btn-sm btn-ghost" id="btnClearCart" style="flex:1">🗑 Vider</button>
+    <button class="btn btn-md btn-gold" id="btnStartGame" style="flex:2">⚽ JOUER</button>
+  </div>
+</div>
+
+<!-- ══ IN-GAME HUD ══ -->
+<div id="gameHud">
+  <div class="match-bar">
+    <div class="mb-side"><div class="mb-name">TOI</div><div class="mb-score p" id="scoreP">0</div></div>
+    <div class="mb-center"><div class="mb-vs">VS</div><div class="mb-turn" id="turnLbl">—</div><div class="mb-half" id="halfLbl">MT 1</div></div>
+    <div class="mb-side"><div class="mb-name">IA</div><div class="mb-score a" id="scoreA">0</div></div>
+  </div>
+  <div class="dots-row" id="dotsRow"></div>
+</div>
+
+<div id="timerBar"><div class="timer-track"><div class="timer-fill" id="timerFill"></div></div><div id="timerNumDisplay">5</div></div>
+<div id="phaseLabel"></div>
+<div id="feedback"></div>
+<div id="aiTell"></div>
+<div id="swipeGuide"><div class="sg-arrow">👆</div><div class="sg-txt">Swipe vers le but</div></div>
+<div id="defendButtons">
+  <div class="def-timing" id="defTiming">ATTENDS LE TIR</div>
+  <div class="def-row">
+    <button class="def-btn left"   id="defL"><span class="def-icon">⬅️</span><span class="def-lbl">GAUCHE</span></button>
+    <button class="def-btn center" id="defC"><span class="def-icon">🛡</span><span class="def-lbl">CENTRE</span></button>
+    <button class="def-btn right"  id="defR"><span class="def-icon">➡️</span><span class="def-lbl">DROITE</span></button>
+  </div>
+</div>
+<div class="power-bar-wrap" id="powerBarWrap">
+  <div class="power-bar-lbl">FORCE</div>
+  <div class="power-bar-track"><div class="power-bar-fill" id="powerBarFill" style="height:0%"></div></div>
+  <div class="power-val" id="powerVal">0%</div>
+</div>
+
+<canvas id="game"></canvas>
+
+<div id="goalFlash"></div><div id="missFlash"></div><div id="savedFlash"></div><div id="earlyFlash"></div>
+<div id="announcement"></div>
+
+<!-- ══ GAME OVER ══ -->
+<div class="screen hidden" id="gameOverScreen">
+  <div class="go-scroll">
+    <div class="go-ttl" id="goTtl">VICTOIRE</div>
+    <div class="go-sub" id="goSub">—</div>
+    <div class="score-final">
+      <div class="sf-side"><div class="sf-nm">TOI</div><div class="sf-sc p" id="goP">0</div></div>
+      <div class="sf-sep">—</div>
+      <div class="sf-side"><div class="sf-nm">IA</div><div class="sf-sc a" id="goA">0</div></div>
+    </div>
+    <!-- Fiche results injected here -->
+    <div class="fiche-results" id="ficheResultsCard" style="display:none">
+      <div class="fr-head">📋 RÉSULTATS DE TA FICHE</div>
+      <div id="ficheResultsBody"></div>
+    </div>
+    <div class="finance-card">
+      <div class="fc-row"><span class="fc-l">MISE</span><span class="fc-r" id="goMise">—</span></div>
+      <div class="fc-row"><span class="fc-l">CÔTE TOTALE</span><span class="fc-r gold" id="goCote">×—</span></div>
+      <div class="fc-row"><span class="fc-l">GAINS</span><span class="fc-r" id="goGains">—</span></div>
+    </div>
+    <div class="go-btns">
+      <button class="btn btn-sm btn-ghost" id="btnGoHome">🏠 Accueil</button>
+      <button class="btn btn-sm btn-ghost" id="btnSameFiche">📋 Même Fiche</button>
+      <button class="btn btn-sm btn-gold"  id="btnNewFiche">+ Nouvelle Fiche</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="firebaseConfig.js"></script>
+
+<script>
+
+let currentUser = null;
+
+// ════════════════════════════════════════════════════════════════
+//  MODE TEST - DÉSACTIVE LES TRANSACTIONS
+// ════════════════════════════════════════════════════════════════
+const TEST_MODE = true;  // ← Mets false pour réactiver Firebase
+
+// Override des fonctions de transaction
+if (TEST_MODE) {
+  // Désactive le débit
+  debitMise = async function(amt) {
+    console.log('🧪 TEST: Débit simulé de', amt, 'G');
+    return true;  // Toujours autorisé
+  };
+  
+  // Désactive le crédit
+  creditGain = async function(amt) {
+    console.log('🧪 TEST: Gain simulé de', amt, 'G');
+    // Ne fait rien
+  };
+  
+  // Affiche un solde fictif
+  loadBal = function() {
+    document.getElementById("balVal").textContent = '∞';
+    document.getElementById("krediVal").textContent = '∞';
+  };
+  
+  // Appelle loadBal immédiatement
+  setTimeout(() => loadBal(), 100);
+}
+if (auth) auth.onAuthStateChanged(u => { currentUser = u||null; if(currentUser) loadBal(); }); 
+
+
+async function loadBal() {
+  if (!db||!currentUser) return;
+  try {
+    const d=(await db.collection('users').doc(currentUser.uid).get()).data()||{};
+    document.getElementById("balVal").textContent=(d.balance||0).toLocaleString();
+    document.getElementById("krediVal").textContent=(d.kredi||0).toLocaleString();
+  }catch(e){}
+}
+async function debitMise(amt) {
+  if (!db||!currentUser) return true;
+  const ref=db.collection('users').doc(currentUser.uid);
+  const d=((await ref.get()).data())||{};
+  if((d.balance||0)>=amt){await ref.update({balance:firebase.firestore.FieldValue.increment(-amt)});loadBal();return true;}
+  if((d.kredi||0)>=amt){await ref.update({kredi:firebase.firestore.FieldValue.increment(-amt)});loadBal();return true;}
+  showToast("💳 Balans ensifizan. Fè yon depo.");return false;
+}
+async function creditGain(amt) {
+  if (!db||!currentUser||amt<=0) return;
+  try {
+    const ref=db.collection('users').doc(currentUser.uid);
+    await ref.update({balance:firebase.firestore.FieldValue.increment(amt)});
+    await db.collection('penalty_duel_pro').add({
+      userId:currentUser.uid,amt,
+      mise:match.mise,cote:cartTotalCote(),
+      scoreP:match.scoreP,scoreA:match.scoreA,
+      date:firebase.firestore.FieldValue.serverTimestamp(),statut:'gagne'
+    });
+    loadBal();
+  }catch(e){}
+}
+function showToast(msg){
+  let t=document.getElementById('pd-toast');
+  if(!t){t=document.createElement('div');t.id='pd-toast';t.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#111;border:1px solid rgba(255,255,255,.15);color:#fff;padding:10px 22px;border-radius:50px;font-family:Rajdhani,sans-serif;font-size:14px;z-index:9999;pointer-events:none;transition:opacity .3s;white-space:nowrap';document.body.appendChild(t);}
+  t.textContent=msg;t.style.opacity='1';setTimeout(()=>t.style.opacity='0',3000);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  CART SYSTEM
+// ════════════════════════════════════════════════════════════════
+// cart = Map<id, {id,cat,cote,name,excl}>
+const cart = new Map();
+let miseVal = 100;
+
+function cartTotalCote(){let c=1;cart.forEach(i=>c*=parseFloat(i.cote));return Math.round(c*100)/100;}
+
+function getExclSet(row){
+  const raw=row.dataset.excl||'';
+  return raw?raw.split(',').map(s=>s.trim()):[];
+}
+
+function isConflict(row){
+  const cats=getExclSet(row);
+  for(const cat of cats){
+    for(const [id,item] of cart){
+      if(id===row.dataset.id) continue;
+      if(item.cat===cat) return true;
+    }
+  }
+  return false;
+}
+
+function addOrToggleBet(row){
+  const id=row.dataset.id;
+  if(cart.has(id)){
+    cart.delete(id);
+    refreshFicheUI();
+    refreshCartUI();
+    return;
+  }
+  if(row.classList.contains('disabled')) return;
+  // Conflict check
+  const cats=getExclSet(row);
+  for(const cat of cats){
+    for(const [eid,item] of cart){
+      if(item.cat===cat){
+        showToast("⚠️ Conflit : Retire d'abord '"+item.name+"'");
+        return;
+      }
+    }
+  }
+  cart.set(id,{
+    id,
+    cat:row.dataset.cat||id,
+    cote:row.dataset.cote||'1.00',
+    name:row.querySelector('.bet-name').textContent,
+    excl:getExclSet(row)
+  });
+  refreshFicheUI();
+  refreshCartUI();
+}
+
+// Attach clicks to all bet rows
+document.querySelectorAll('.bet-row:not(.disabled)').forEach(row=>{
+  row.addEventListener('click',()=>addOrToggleBet(row));
+});
+
+function refreshFicheUI(){
+  document.querySelectorAll('.bet-row:not(.disabled)').forEach(row=>{
+    const sel=cart.has(row.dataset.id);
+    row.classList.toggle('sel',sel);
+  });
+  const cnt=document.getElementById('cartCnt');
+  cnt.textContent=cart.size;
+  cnt.style.display=cart.size>0?'flex':'none';
+}
+
+function refreshCartUI(){
+  const c=document.getElementById('cartItems');
+  c.innerHTML='';
+  if(cart.size===0){c.innerHTML='<div class="c-empty">Panier vide. Sélectionne des paris.</div>';}
+  else{
+    cart.forEach((item,id)=>{
+      const el=document.createElement('div');el.className='c-item';
+      el.innerHTML=`<div class="c-left"><div class="c-cat">${item.cat}</div><div class="c-name">${item.name}</div></div><div class="c-right"><div class="c-cote">×${parseFloat(item.cote).toFixed(2)}</div><div class="c-del" data-id="${id}">✕</div></div>`;
+      c.appendChild(el);
+    });
+    c.querySelectorAll('.c-del').forEach(b=>b.addEventListener('click',()=>{cart.delete(b.dataset.id);refreshFicheUI();refreshCartUI();}));
+  }
+  const cote=cartTotalCote();
+  document.getElementById('totalCoteDisp').textContent='×'+cote.toFixed(2);
+  document.getElementById('totalSel').textContent=cart.size;
+  const gain=Math.round(miseVal*cote);
+  document.getElementById('gainDisp').innerHTML=`${miseVal} G × ${cote.toFixed(2)} = <span>${gain.toLocaleString()} G</span>`;
+}
+
+// Nav
+document.getElementById('btnGoFiche').addEventListener('click',()=>showScreen('ficheScreen'));
+document.getElementById('btnBackStart').addEventListener('click',()=>showScreen('startScreen'));
+document.getElementById('btnOpenCart').addEventListener('click',()=>{refreshCartUI();showScreen('cartScreen');});
+document.getElementById('btnGoCart').addEventListener('click',()=>{refreshCartUI();showScreen('cartScreen');});
+document.getElementById('btnBackFiche').addEventListener('click',()=>{refreshFicheUI();showScreen('ficheScreen');});
+document.getElementById('btnClearCart').addEventListener('click',()=>{cart.clear();refreshFicheUI();refreshCartUI();});
+document.getElementById('miseInput').addEventListener('input',e=>{miseVal=Math.max(10,parseInt(e.target.value)||10);refreshCartUI();});
+document.querySelectorAll('.mise-q').forEach(b=>b.addEventListener('click',()=>{miseVal=parseInt(b.dataset.v);document.getElementById('miseInput').value=miseVal;refreshCartUI();}));
+document.getElementById('btnStartGame').addEventListener('click',startGame);
+document.getElementById('btnGoHome').addEventListener('click',()=>showScreen('startScreen'));
+document.getElementById('btnSameFiche').addEventListener('click',()=>startGame());
+document.getElementById('btnNewFiche').addEventListener('click',()=>{cart.clear();refreshFicheUI();showScreen('ficheScreen');});
+
+function showScreen(id){
+  ['startScreen','ficheScreen','cartScreen','gameOverScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id));
+  canvas.style.pointerEvents='none';
+}
+
+// ════════════════════════════════════════════════════════════════
+//  MATCH STATE
+// ════════════════════════════════════════════════════════════════
+const match={
+  // Scores
+  scoreP:0, scoreA:0,
+  scoreP_h1:0,scoreA_h1:0,
+  scoreP_h2:0,scoreA_h2:0,
+  // Saves
+  savesP:0,savesA:0,
+  savesP_h1:0,savesA_h1:0,
+  // Turns: 20 total (10/half), turn 0..9=half1, 10..19=half2
+  // Even turns = player shoots, odd = AI shoots
+  turn:0, half:1, over:false, mise:100,
+  // Per-turn results for dots
+  playerShootResults:[],  // per player-shoot turn
+  aiShootResults:[],      // per ai-shoot turn (from player's perspective: "hit"=AI scored, "save"=saved)
+  halfTimeActive: false,
+  halfTimeDone: false, 
+};
+
+// Helpers
+function isPlayerShootTurn(t){return t%2===0;} // even = player shoots
+function halfOfTurn(t){return t<10?1:2;}
+function turnInHalf(t){return t%10;}
+
+// ════════════════════════════════════════════════════════════════
+//  GAME START
+// ════════════════════════════════════════════════════════════════
+async function startGame(){
+  if(cart.size===0){showToast('Ajoute au moins un pari !');return;}
+  const ok=await debitMise(miseVal);
+  if(!ok)return;
+  // Reset match
+  Object.assign(match,{scoreP:0,scoreA:0,scoreP_h1:0,scoreA_h1:0,scoreP_h2:0,scoreA_h2:0,
+    savesP:0,savesA:0,savesP_h1:0,savesA_h1:0,turn:0,half:1,over:false,mise:miseVal,
+    playerShootResults:[],aiShootResults:[]});
+  ['startScreen','ficheScreen','cartScreen','gameOverScreen'].forEach(s=>document.getElementById(s).classList.add('hidden'));
+  document.getElementById('gameHud').style.display='flex';
+  document.getElementById('timerBar').style.display='block';
+  canvas.style.pointerEvents='auto';
+  buildDots();
+  updateHUD();
+  initLayout();
+  resetDots();
+  setTimeout(()=>beginTurn(),500);
+  match.halfTimeDone = false;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  TURN MANAGEMENT
+// ════════════════════════════════════════════════════════════════
+let resultLock=false;
+let timerID=null,timerSec=0,timerBonus=false;
+
+function beginTurn(){
+  if(match.turn>=20){endMatch();return;}
+   // Half-time pause – seulement si pas déjà faite
+  if(match.turn === 10 && !match.halfTimeDone){
+    showHalfTime();
+    return;
+  }
+  resultLock=false;
+  playerDiveDir=null;playerDiveTime=null;aiShotTime=null;
+  aiZone=null;
+  keeper.reset();
+  keeper.diving=false;
+  document.querySelectorAll('.def-btn').forEach(b=>{b.classList.remove('chosen','wrong','good');b.style.opacity='1';});
+  document.getElementById('defTiming').textContent='ATTENDS LE TIR';
+  document.getElementById('defTiming').className='def-timing';
+  document.getElementById('aiTell').style.opacity='0';
+  clearFeedback();
+
+  match.half = halfOfTurn(match.turn);
+  updateHUD();
+
+  if(isPlayerShootTurn(match.turn)){
+    // Player shoots
+    setPhase('TIREUR 🎯','shoot');
+    showSwipeGuide(true);
+    showDefendButtons(false);
+    hideDefendButtons();
+    showPowerBar(false);
+    repositionBall(false);
+    startShotTimer(true);
+    gs=S.PLAYING;
+  } else {
+    // AI shoots
+    setPhase('GARDIEN 🧤','defend');
+    showSwipeGuide(false);
+    showDefendButtons(true);
+    showPowerBar(true);
+    repositionBall(false);
+    startShotTimer(false);
+    gs=S.DEFEND_WAIT;
+    // Show AI tell after 1.5s, then shoot after 3.5s
+    setTimeout(()=>showAITell(),1500);
+    setTimeout(()=>aiShoot(),3500);
+  }
+}
+
+function showHalfTime(){
+  match.halfTimeActive = true; 
+  stopTimer();
+  setPhase('MI-TEMPS','half');
+  showAnnouncement('MI-TEMPS !','half-time');
+  
+  // Garde la barre de timer visible mais on la vide
+  const timerBar = document.getElementById('timerBar');
+  timerBar.style.display = 'block';
+  document.getElementById('timerFill').style.width = '100%';
+  document.getElementById('timerFill').style.background = '#ffd700';
+  document.getElementById('timerNumDisplay').textContent = '⏸';
+  
+  // Feedback du score (reste affiché)
+  const feedbackEl = document.getElementById('feedback');
+  feedbackEl.textContent = `Score: ${match.scoreP} — ${match.scoreA}`;
+  feedbackEl.classList.add('vis');
+  
+  // Crée ou récupère l'élément de décompte plein écran
+  let countdownEl = document.getElementById('halfCountdown');
+  if (!countdownEl) {
+    countdownEl = document.createElement('div');
+    countdownEl.id = 'halfCountdown';
+    countdownEl.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 25vw;
+      font-weight: 700;
+      color: #ffd700;
+      text-shadow: 0 0 80px rgba(255, 215, 0, 0.9);
+      pointer-events: none;
+      background: transparent;
+      letter-spacing: 8px;
+    `;
+    document.body.appendChild(countdownEl);
+  }
+  
+  countdownEl.style.display = 'flex';
+  
+  let secondsLeft = 5;
+  
+  const updateCountdown = () => {
+    if (secondsLeft > 0) {
+      countdownEl.textContent = secondsLeft;
+      secondsLeft--;
+      setTimeout(updateCountdown, 1000);
+    } else {
+      countdownEl.textContent = 'GO !';
+      setTimeout(() => {
+        countdownEl.style.display = 'none';
+      }, 600);
+    }
+  };
+  
+  updateCountdown();
+  
+  setTimeout(()=>{
+    match.halfTimeActive = false;
+    match.halfTimeDone = true;
+    match.turn = 10;
+    document.getElementById('announcement').className='';
+    clearPhase();
+    feedbackEl.classList.remove('vis');
+    timerBar.style.display = 'none';
+    countdownEl.style.display = 'none';
+    beginTurn();
+  }, 5000);
+}
+
+// ── SHOT TIMER ──
+function startShotTimer(isPlayer){
+  stopTimer();
+  timerSec=5; timerBonus=false;
+  renderTimer();
+  timerID=setInterval(()=>{
+    timerSec--;
+    renderTimer();
+    if(timerSec<=0){
+      if(isPlayer&&!timerBonus){
+        // 3s bonus
+        timerBonus=true;
+        timerSec=3;
+        showFeedback('⚠️ 3 SECONDES BONUS !');
+        renderTimer();
+      } else {
+        stopTimer();
+        if(isPlayer){
+          if(!resultLock) onPlayerMiss("timeout");
+        }
+      }
+    }
+  },1000);
+}
+function stopTimer(){clearInterval(timerID);timerID=null;}
+function renderTimer(){
+  const max=timerBonus?3:5;
+  const pct=Math.max(0,timerSec/max)*100;
+  document.getElementById('timerFill').style.width=pct+'%';
+  document.getElementById('timerFill').style.background=timerSec<=2?'#ff4444':timerBonus?'#ff8800':'#ffd700';
+  document.getElementById('timerNumDisplay').textContent=timerSec;
+}
+
+// ── AI TELL (visual hint) ──
+let aiZone=null;
+const AI_ZONES=[
+  {name:'lucarne-G',dir:'left',tx:()=>GOAL.x+GOAL.w*.1,ty:()=>GOAL.y-NET_DEPTH*.85},
+  {name:'lucarne-D',dir:'right',tx:()=>GOAL.x+GOAL.w*.9,ty:()=>GOAL.y-NET_DEPTH*.85},
+  {name:'sol-G',    dir:'left', tx:()=>GOAL.x+GOAL.w*.15,ty:()=>GOAL.y+2},
+  {name:'sol-D',    dir:'right',tx:()=>GOAL.x+GOAL.w*.85,ty:()=>GOAL.y+2},
+  {name:'centre',   dir:'center',tx:()=>GOAL.x+GOAL.w*.5, ty:()=>GOAL.y-NET_DEPTH*.4},
+];
+
+
+// ── AI SHOOTS ──
+let playerDiveDir=null,playerDiveTime=null,aiShotTime=null;
+
+function aiShoot(){
+  if(gs!==S.DEFEND_WAIT)return;
+  if(!aiZone) aiZone=AI_ZONES[Math.floor(Math.random()*AI_ZONES.length)];
+  aiShotTime=performance.now();
+  // Variable power 80-120%
+  const powerMod=0.8+Math.random()*0.4;
+  ball.x=canvas.width/2; ball.y=canvas.height-110;
+  ball.vx=ball.vy=0;ball.moving=false;ball.spin=0;ball.shadow=0;
+  const tx=aiZone.tx(),ty=aiZone.ty();
+  const dx=tx-ball.x,dy=ty-ball.y,dist=Math.hypot(dx,dy);
+  const spd=18*powerMod;
+  ball.vx=(dx/dist)*spd; ball.vy=(dy/dist)*spd;
+  ball.moving=true; ball.spin=(Math.random()-.5)*.5;
+  stopTimer();
+  gs=S.FLYING_AI;
+}
+
+// Defend button presses
+['defL','defC','defR'].forEach(id=>{
+  const dir={defL:'left',defC:'center',defR:'right'}[id];
+  document.getElementById(id).addEventListener('click',()=>{
+    if(gs!==S.DEFEND_WAIT&&gs!==S.FLYING_AI)return;
+    if(playerDiveDir)return;
+    playerDiveDir=dir;
+    playerDiveTime=performance.now();
+    // Visual
+    document.querySelectorAll('.def-btn').forEach(b=>b.classList.add('wrong'));
+    document.getElementById(id).classList.remove('wrong');
+    document.getElementById(id).classList.add('chosen');
+    // Check if early (before AI shot)
+    if(aiShotTime===null){
+      document.getElementById('defTiming').textContent='TROP TÔT !';
+      document.getElementById('defTiming').className='def-timing early';
+    } else {
+      document.getElementById('defTiming').textContent='TIMING OK !';
+      document.getElementById('defTiming').className='def-timing ok';
+    }
+  });
+});
+
+function resolveAIShot(entered){
+  if(resultLock)return;resultLock=true;
+  const zoneDir=aiZone?aiZone.dir:'center';
+  const playerChoseCorrect=playerDiveDir===zoneDir;
+  // Early penalty: if player dived before AI shot, 50% miss chance even if correct
+  const early=(aiShotTime!==null&&playerDiveTime!==null&&playerDiveTime<aiShotTime);
+  const earlyPenalty=early&&Math.random()<.5;
+  const saved=entered&&playerChoseCorrect&&!earlyPenalty;
+  const earlyFail=entered&&playerChoseCorrect&&earlyPenalty;
+  // Feedback on buttons
+  document.getElementById({left:'defL',center:'defC',right:'defR'}[zoneDir]).classList.add('good');
+  const h=match.half;
+  if(!entered){
+    match.aiShootResults.push('miss');
+    if(h===1)match.savesA_h1|=0; // AI "saved" itself (miss)
+    doFlash('savedFlash');showAnnouncement('RATÉ IA !','miss');
+  } else if(saved){
+    match.aiShootResults.push('save');
+    match.savesP++;
+    if(h===1)match.savesP_h1++;
+    doFlash('savedFlash');showAnnouncement('ARRÊT ! 🧤','saved');triggerShake(4,12);
+    showFeedback('⭐ TIMING PARFAIT !');
+  } else if(earlyFail){
+    match.aiShootResults.push('hit');
+    match.scoreA++;
+    if(h===1)match.scoreA_h1++;else match.scoreA_h2++;
+    updateHUD();
+    doFlash('earlyFlash');showAnnouncement('TROP TÔT ! 😱','early');triggerShake(8,16);
+    showFeedback('Réagis après le tir !');
+  } else {
+    match.aiShootResults.push('hit');
+    match.scoreA++;
+    if(h===1)match.scoreA_h1++;else match.scoreA_h2++;
+    updateHUD();
+    doFlash('missFlash');showAnnouncement('BUT IA ! 😱','but');triggerShake(10,20);
+  }
+  const shootIdx=Math.floor(match.aiShootResults.length-1);
+  markAIDot(shootIdx,match.aiShootResults[shootIdx]==='hit'?'ai-hit':'ai-save');
+  setTimeout(()=>nextTurn(),1500);
+}
+
+// ── PLAYER SHOOTS ──
+function onPlayerGoal(){
+  if(resultLock)return;resultLock=true;stopTimer();
+  match.scoreP++;
+  const h=match.half;
+  if(h===1)match.scoreP_h1++;else match.scoreP_h2++;
+  match.playerShootResults.push('hit');
+  updateHUD();
+  markPlayerDot(match.playerShootResults.length-1,'p-hit');
+  doFlash('goalFlash');showAnnouncement('BUT ! ⚽','but');triggerShake(6,18);
+  showFeedback('💥 PUISSANCE MAX !');
+  setTimeout(()=>nextTurn(),1400);
+}
+
+function onPlayerMiss(reason){
+  if(resultLock)return;
+  resultLock=true;
+  stopTimer();
+  
+  match.playerShootResults.push('miss');
+  markPlayerDot(match.playerShootResults.length-1,'p-miss');
+  doFlash('missFlash');
+  
+  // ═══════════════════════════════════════════════════════════════
+  // AJOUTE CES 3 LIGNES
+  // ═══════════════════════════════════════════════════════════════
+  if (reason === 'keeper') {
+    match.savesA++;
+    if (match.half === 1) match.savesA_h1 = (match.savesA_h1 || 0) + 1;
+  }
+  
+  const msg = reason === 'timeout' ? '⏱ TEMPS ÉCOULÉ !' : 'RATÉ !';
+  showAnnouncement(msg, 'miss');
+  setTimeout(() => nextTurn(), 1200);
+}
+
+
+function nextTurn(){
+  if (match.halfTimeActive) return; 
+  match.turn++;
+  if(match.turn===10&&match.half===1){
+    // Save H1 then pause
+    match.scoreP_h1=match.scoreP;match.scoreA_h1=match.scoreA;
+  }
+  document.querySelectorAll('.def-btn').forEach(b=>{b.classList.remove('chosen','wrong','good');b.style.opacity='1';});
+  playerDiveDir=null;playerDiveTime=null;aiShotTime=null;aiZone=null;
+  document.getElementById('announcement').className='';
+  document.getElementById('aiTell').style.opacity='0';
+  clearFeedback();
+  beginTurn();
+}
+
+// ════════════════════════════════════════════════════════════════
+//  END MATCH + FICHE VALIDATION
+// ════════════════════════════════════════════════════════════════
+async function endMatch(){
+  match.over=true;
+  match.scoreP_h2=match.scoreP-match.scoreP_h1;
+  match.scoreA_h2=match.scoreA-match.scoreA_h1;
+  stopTimer();
+  canvas.style.pointerEvents='none';
+  ['gameHud','timerBar','swipeGuide','defendButtons','powerBarWrap'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.style.display='none';
+  });
+  clearPhase();
+  const won=match.scoreP>match.scoreA;
+  const draw=match.scoreP===match.scoreA;
+  // Fiche evaluation
+  const ficheResults=evaluateFiche();
+  const fichePassed=ficheResults.every(r=>r.passed);
+  const totalButs=match.scoreP+match.scoreA;
+  const totalArrets=match.savesP+match.savesA;
+  // Financial
+  const cote=cartTotalCote();
+  const gain=fichePassed?Math.round(match.mise*cote):0;
+  // UI
+  document.getElementById('goTtl').textContent=fichePassed?'FICHE GAGNÉE !':(won?'VICTOIRE':'DÉFAITE');
+  document.getElementById('goTtl').className='go-ttl '+(fichePassed?'win':'lose');
+  document.getElementById('goSub').textContent=fichePassed?'🏆 Fiche validée — Gains crédités !':(draw?'Match nul':'La fiche n\'est pas validée');
+  document.getElementById('goP').textContent=match.scoreP;
+  document.getElementById('goA').textContent=match.scoreA;
+  document.getElementById('goMise').textContent=match.mise.toLocaleString()+' G';
+  document.getElementById('goCote').textContent='×'+cote.toFixed(2);
+  document.getElementById('goGains').textContent=fichePassed?gain.toLocaleString()+' G 🎉':'0 G';
+  document.getElementById('goGains').className='fc-r '+(fichePassed?'gold':'r');
+  
+  // Fiche results display
+if(cart.size>0){
+  const card = document.getElementById('ficheResultsCard');
+  card.style.display = 'block';
+  const body = document.getElementById('ficheResultsBody');
+  body.innerHTML = '';
+  ficheResults.forEach(r => {
+    const row = document.createElement('div');
+    row.className = 'fr-row';
+    row.innerHTML = `<div class="fr-name">${r.name}</div><div class="fr-cote">×${parseFloat(r.cote).toFixed(2)}</div><div class="fr-result">${r.passed?'✅':'❌'}</div>`;
+    body.appendChild(row);
+  });
+  }
+  document.getElementById('gameOverScreen').classList.remove('hidden');
+  if(fichePassed)await creditGain(gain);
+  loadBal();
+}
+
+function evaluateFiche(){
+  const m = match;
+  const totalButs = m.scoreP + m.scoreA;
+  const totalArrets = m.savesP + m.savesA;
+  const wonP = m.scoreP > m.scoreA;
+  const draw = m.scoreP === m.scoreA;
+  
+  // Recalcule les scores de mi-temps (sécurité)
+  const pH1 = m.scoreP_h1;
+  const aH1 = m.scoreA_h1;
+  const pH2 = m.scoreP - pH1;
+  const aH2 = m.scoreA - aH1;
+  
+  // Total buts par mi-temps
+  const butsH1 = pH1 + aH1;
+  const butsH2 = pH2 + aH2;
+  
+  const results = [];
+  
+  cart.forEach(item => {
+    let passed = false;
+    const id = item.id;
+    
+    // RÉSULTAT MATCH
+    if (id === 'res_1') passed = wonP;
+    else if (id === 'res_x') passed = draw;
+    
+    // DOUBLE CHANCE
+    else if (id === 'dc_1x') passed = wonP || draw;
+    else if (id === 'dc_12') passed = !draw;
+    
+    // RÉSULTAT 1ÈRE MI-TEMPS
+    else if (id === 'half1_1') passed = pH1 > aH1;
+    else if (id === 'half1_x') passed = pH1 === aH1;
+    else if (id === 'half1_dc1x') passed = pH1 >= aH1;
+    
+    // RÉSULTAT 2ÈME MI-TEMPS
+    else if (id === 'half2_1') passed = pH2 > aH2;
+    else if (id === 'half2_x') passed = pH2 === aH2;
+    else if (id === 'half2_dc1x') passed = pH2 >= aH2;
+    
+    // TOTAL BUTS MATCH
+    else if (id === 'tb_o4') passed = totalButs >= 5;      // Over 4.5
+    else if (id === 'tb_u5') passed = totalButs <= 5;      // Under 5.5
+    else if (id === 'tb_o6') passed = totalButs >= 7;      // Over 6.5
+    else if (id === 'tb_u7') passed = totalButs <= 7;      // Under 7.5
+    
+    // TOTAL BUTS PAR MI-TEMPS
+    else if (id === 'tb1_o2') passed = butsH1 >= 3;        // Over 2.5
+    else if (id === 'tb1_u3') passed = butsH1 <= 3;        // Under 3.5
+    else if (id === 'tb2_o2') passed = butsH2 >= 3;        // Over 2.5
+    else if (id === 'tb2_u3') passed = butsH2 <= 3;        // Under 3.5
+    
+    // TOTAL ARRÊTS MATCH (joueur + IA)
+    else if (id === 'ta_o3') passed = totalArrets >= 4;    // Over 3.5
+    else if (id === 'ta_u4') passed = totalArrets <= 4;    // Under 4.5
+    
+    // ARRÊTS PAR MI-TEMPS (total des deux gardiens)
+    else if (id === 'ta1_o1') passed = (m.savesP_h1 + (m.savesA_h1 || 0)) >= 2;  // Over 1.5
+    else if (id === 'ta2_o1') passed = ((m.savesP - m.savesP_h1) + (m.savesA - (m.savesA_h1 || 0))) >= 2;
+    
+    // BUTS JOUEUR
+    else if (id === 'bp_o3') passed = m.scoreP >= 3;       // Over 2.5
+    else if (id === 'bp_u3') passed = m.scoreP <= 3;       // Under 3.5
+    else if (id === 'bp1_o1') passed = pH1 >= 1;           // Over 0.5
+    
+    // BUTS IA
+    else if (id === 'bai_o2') passed = m.scoreA >= 2;      // Over 1.5
+    else if (id === 'bai_u3') passed = m.scoreA <= 2;      // Under 2.5
+    else if (id === 'bai_h1_o1') passed = aH1 >= 1;        // Over 0.5
+    
+    // ARRÊTS JOUEUR
+    else if (id === 'ap_o2') passed = m.savesP >= 2;       // Over 1.5
+    else if (id === 'ap_u3') passed = m.savesP <= 2;       // Under 2.5
+    
+    // ÉCART BUTS
+    else if (id === 'eb_1') passed = Math.abs(m.scoreP - m.scoreA) === 1;
+    else if (id === 'eb_2') passed = Math.abs(m.scoreP - m.scoreA) === 2;
+    else if (id === 'eb_3p') passed = Math.abs(m.scoreP - m.scoreA) >= 3;
+    
+    // ÉCART ARRÊTS
+    else if (id === 'ea_0') passed = Math.abs(m.savesP - m.savesA) === 0;
+    else if (id === 'ea_1p') passed = Math.abs(m.savesP - m.savesA) >= 1;
+    
+    // SCORE EXACT MATCH
+    else if (id === 'se_5_4') passed = m.scoreP === 5 && m.scoreA === 4;
+    else if (id === 'se_5_3') passed = m.scoreP === 5 && m.scoreA === 3;
+    else if (id === 'se_6_4') passed = m.scoreP === 6 && m.scoreA === 4;
+    else if (id === 'se_5_5') passed = m.scoreP === 5 && m.scoreA === 5;
+    else if (id === 'se_4_4') passed = m.scoreP === 4 && m.scoreA === 4;
+    else if (id === 'se_7_3') passed = m.scoreP === 7 && m.scoreA === 3;
+    
+    // SCORE EXACT 1ÈRE MT
+    else if (id === 'seh1_3_2') passed = pH1 === 3 && aH1 === 2;
+    else if (id === 'seh1_2_2') passed = pH1 === 2 && aH1 === 2;
+    else if (id === 'seh1_3_1') passed = pH1 === 3 && aH1 === 1;
+    
+    // SCORE EXACT 2ÈME MT
+    else if (id === 'seh2_3_2') passed = pH2 === 3 && aH2 === 2;
+    else if (id === 'seh2_2_2') passed = pH2 === 2 && aH2 === 2;
+    
+    results.push({ name: item.name, cote: item.cote, passed });
+  });
+  
+  return results;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  UI HELPERS
+// ════════════════════════════════════════════════════════════════
+function updateHUD(){
+  document.getElementById('scoreP').textContent=match.scoreP;
+  document.getElementById('scoreA').textContent=match.scoreA;
+  const t=match.turn;const h=halfOfTurn(t);const tin=turnInHalf(t)%10;
+  document.getElementById('halfLbl').textContent='MT '+h;
+  const isShoot=isPlayerShootTurn(t);
+  document.getElementById('turnLbl').textContent=isShoot?'⚽ TON TIR':'🧤 TON ARRÊT';
+}
+
+function buildDots(){
+  const row = document.getElementById('dotsRow');
+  row.innerHTML = '';
+  
+  // 10 dots joueur (5 par mi-temps)
+  for (let i = 0; i < 10; i++) {
+    const d = document.createElement('div');
+    d.className = 'pdot';
+    d.id = 'pdot_p_' + i;
+    row.appendChild(d);
+  }
+  
+  const s = document.createElement('div');
+  s.className = 'dots-sep';
+  row.appendChild(s);
+  
+  // 10 dots IA (5 par mi-temps)
+  for (let i = 0; i < 10; i++) {
+    const d = document.createElement('div');
+    d.className = 'pdot';
+    d.id = 'pdot_a_' + i;
+    row.appendChild(d);
+  }
+}
+
+function resetDots(){
+  for (let i = 0; i < 10; i++) {
+    const p = document.getElementById('pdot_p_' + i);
+    if (p) p.className = 'pdot';
+    const a = document.getElementById('pdot_a_' + i);
+    if (a) a.className = 'pdot';
+  }
+}
+
+function markPlayerDot(idx, cls){
+  const el = document.getElementById('pdot_p_' + idx);
+  if (el) { el.className = 'pdot ' + cls; }
+}
+
+function markAIDot(idx, cls){
+  const el = document.getElementById('pdot_a_' + idx);
+  if (el) { el.className = 'pdot ' + cls; }
+}
+
+function setPhase(txt,cls){
+  const el=document.getElementById('phaseLabel');
+  el.textContent=txt;el.className=cls;
+}
+function clearPhase(){document.getElementById('phaseLabel').className='';}
+
+function showFeedback(msg){
+  const el=document.getElementById('feedback');
+  el.textContent=msg;el.classList.add('vis');
+}
+function clearFeedback(){
+  const el=document.getElementById('feedback');el.classList.remove('vis');el.textContent='';
+}
+function showSwipeGuide(on){document.getElementById('swipeGuide').style.display=on?'flex':'none';}
+function showDefendButtons(on){document.getElementById('defendButtons').style.display=on?'flex':'none';}
+function hideDefendButtons(){document.getElementById('defendButtons').style.display='none';}
+function showPowerBar(on){document.getElementById('powerBarWrap').style.display=on?'flex':'none';}
+
+function showAnnouncement(msg,cls){
+  const el=document.getElementById('announcement');
+  el.textContent=msg;el.className='show '+cls;
+  setTimeout(()=>{el.className='';},1100);
+}
+function doFlash(id){const e=document.getElementById(id);e.style.opacity='1';setTimeout(()=>e.style.opacity='0',220);}
+let shakeFrames=0,shakeMag=0;
+function triggerShake(m,f){shakeMag=m;shakeFrames=f;}
+
+// ════════════════════════════════════════════════════════════════
+//  GAME ENGINE
+// ════════════════════════════════════════════════════════════════
+const canvas=document.getElementById('game');
+const ctx=canvas.getContext('2d');
+canvas.style.pointerEvents='none';
+function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+resize();
+window.addEventListener('resize',()=>{resize();initLayout();});
+
+const S={IDLE:0,PLAYING:1,AIMING:2,FLYING:3,RESULT:4,DEFEND_WAIT:5,FLYING_AI:6};
+let gs=S.IDLE;
+const GOAL={x:0,y:0,w:0,h:0};
+const NET_DEPTH=55;
+let lastKeeperCollisionTime = 0;
+const KEEPER_COLLISION_COOLDOWN = 100; // ms
+function initLayout(){
+  GOAL.w=Math.min(canvas.width*.60,300);GOAL.h=22;
+  GOAL.x=canvas.width/2-GOAL.w/2;GOAL.y=52+NET_DEPTH;
+  keeper.reset();
+}
+
+// ── BALL ──
+const ball={x:0,y:0,r:13,vx:0,vy:0,moving:false,spin:0,shadow:0};
+function repositionBall(offCenter){
+  const W=canvas.width,H=canvas.height;
+  ball.x=offCenter?W/2+(Math.random()<.5?1:-1)*W*.14:W/2;
+  ball.y=H-110;ball.vx=ball.vy=0;ball.moving=false;ball.spin=0;ball.shadow=0;
+}
+
+// ── KEEPER (AI) — stays static until shot ──
+const KEEPER_SPEED=3.8; // Normal+15%
+const keeper={
+  x:0,y:0,r:15,diving:false,diveTargetX:0,
+  reset(){this.x=canvas.width/2;this.y=GOAL.y+30;this.diving=false;},
+  clamp(){
+    const mn=GOAL.x+this.r,mx=GOAL.x+GOAL.w-this.r;
+    if(this.x<mn){this.x=mn;}if(this.x>mx){this.x=mx;}
+  },
+  reactTo(tx){
+  const err = Math.random() < 0.10;
+  let fx;
+  if (err) {
+    const offset = GOAL.x + GOAL.w * (0.2 + Math.random() * 0.6);
+    fx = Math.max(GOAL.x + this.r, Math.min(GOAL.x + GOAL.w - this.r, offset));
+  } else {
+    fx = Math.max(GOAL.x + this.r, Math.min(GOAL.x + GOAL.w - this.r, tx));
+  }
+  setTimeout(() => { this.diving = true; this.diveTargetX = fx; }, 100);
+}
+};
+// Player keeper (defend phase) — position tracks dive choice
+let playerKeeperX=0;
+
+// ── PHYSICS ──
+function cc(ax,ay,ar,bx,by,br){return Math.hypot(ax-bx,ay-by)<ar+br;}
+
+// Vectorial post reflection: v_new = v - 2(v·n)n
+function reflectVector(vx,vy,nx,ny){
+  const dot=vx*nx+vy*ny;
+  return {vx:vx-2*dot*nx,vy:vy-2*dot*ny};
+}
+
+// ── TOUCH — power-based swipe ──
+let flick={sx:0,sy:0,ex:0,ey:0};
+let aimTrail=[];
+let pressStart=0;
+// For defend hold-to-power:
+let holdPower=0,holdInterval=null;
+
+function onTS(ex,ey){
+  if(gs!==S.PLAYING)return;
+  flick.sx=ex;flick.sy=ey;flick.ex=ex;flick.ey=ey;
+  aimTrail=[{x:ex,y:ey}];
+  pressStart=performance.now();gs=S.AIMING;
+  document.getElementById('swipeGuide').style.display='none';
+}
+function onTM(ex,ey){
+  if(gs!==S.AIMING)return;
+  flick.ex=ex;flick.ey=ey;
+  aimTrail.push({x:ex,y:ey});if(aimTrail.length>22)aimTrail.shift();
+}
+function onTE(ex,ey){
+  if(gs!==S.AIMING)return;
+  flick.ex=ex;flick.ey=ey;firePlayerShot();
+}
+canvas.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0];onTS(t.clientX,t.clientY);},{passive:false});
+canvas.addEventListener('touchmove', e=>{e.preventDefault();const t=e.touches[0];onTM(t.clientX,t.clientY);},{passive:false});
+canvas.addEventListener('touchend',  e=>{e.preventDefault();const t=e.changedTouches[0];onTE(t.clientX,t.clientY);},{passive:false});
+canvas.addEventListener('mousedown', e=>onTS(e.clientX,e.clientY));
+canvas.addEventListener('mousemove', e=>onTM(e.clientX,e.clientY));
+canvas.addEventListener('mouseup',   e=>onTE(e.clientX,e.clientY));
+
+function firePlayerShot(){
+  const dx = flick.sx - flick.ex;
+  const dy = flick.sy - flick.ey;
+  const swipeDist = Math.hypot(dx, dy);
+  
+  if (swipeDist < 7) {
+    gs = S.PLAYING;
+    return;
+  }
+  
+  const holdDur = Math.min((performance.now() - pressStart) / 800, 1);
+  const swipePow = Math.min(swipeDist / 65, 1);
+  let combinedPow = Math.min(swipePow * 0.7 + holdDur * 0.3, 1);
+  
+  let nx = dx / swipeDist;
+  let ny = dy / swipeDist;
+  
+  if (combinedPow > 0.92) {
+    showFeedback('💥 TROP DE PUISSANCE – Tir légèrement dévié');
+    triggerShake(4, 8);
+    
+    // Déviation dans la direction du tir : on exagère la composante horizontale
+const deviationFactor = 1.2; // +20% de déviation latérale
+let newNx = nx * deviationFactor;
+let newNy = ny;
+
+// Re-normalisation pour conserver une direction unitaire
+const newNorm = Math.hypot(newNx, newNy);
+nx = newNx / newNorm;
+ny = newNy / newNorm;
+    
+    combinedPow = 0.95;
+  }
+  
+  const spd = 5 + combinedPow * 15;
+  ball.vx = nx * spd;
+  ball.vy = ny * spd;
+  ball.moving = true;
+  ball.spin = nx * 0.25;
+  
+  const tg = (ball.y - GOAL.y) / Math.abs(ball.vy || 0.01);
+  keeper.reactTo(ball.x + ball.vx * tg);
+  
+  aimTrail = [];
+  gs = S.FLYING;
+  stopTimer();
+}
+
+
+
+// ── DRAW ──
+let lastTime=0;
+function drawField(){
+  const W=canvas.width,H=canvas.height;
+  const g=ctx.createLinearGradient(0,H*.25,0,H);
+  g.addColorStop(0,'#0d6e36');g.addColorStop(.35,'#0a5c2d');g.addColorStop(.7,'#096328');g.addColorStop(1,'#074d20');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.save();ctx.globalAlpha=.055;ctx.fillStyle='#fff';
+  const sw=W/12;for(let i=0;i<12;i+=2)ctx.fillRect(i*sw,0,sw,H);ctx.restore();
+  ctx.save();ctx.globalAlpha=.04;ctx.strokeStyle='#fff';ctx.lineWidth=1;
+  for(let i=0;i<=8;i++){ctx.beginPath();ctx.moveTo(W*i/8,H);ctx.lineTo(W/2,H*.08);ctx.stroke();}ctx.restore();
+  ctx.save();ctx.globalAlpha=.08;ctx.strokeStyle='#fff';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(W/2,H-60,60,0,Math.PI*2);ctx.stroke();ctx.restore();
+  ctx.save();ctx.globalAlpha=.2;ctx.fillStyle='#fff';
+  ctx.beginPath();ctx.arc(ball.x,H-100,3,0,Math.PI*2);ctx.fill();ctx.restore();
+}
+function drawGoal(){
+  const G=GOAL,nt=G.y-NET_DEPTH;
+  ctx.save();ctx.globalAlpha=.15;ctx.fillStyle='#fff';ctx.fillRect(G.x,nt,G.w,NET_DEPTH);ctx.restore();
+  ctx.save();ctx.globalAlpha=.1;ctx.strokeStyle='#fff';ctx.lineWidth=.8;
+  for(let x=G.x;x<=G.x+G.w;x+=14){ctx.beginPath();ctx.moveTo(x,nt);ctx.lineTo(x,G.y);ctx.stroke();}
+  for(let y=nt;y<=G.y;y+=10){ctx.beginPath();ctx.moveTo(G.x,y);ctx.lineTo(G.x+G.w,y);ctx.stroke();}ctx.restore();
+  ctx.shadowColor='rgba(255,255,255,.5)';ctx.shadowBlur=10;ctx.fillStyle='#fff';
+  ctx.fillRect(G.x-5,G.y,G.w+10,G.h);
+  ctx.fillRect(G.x-5,nt,5,NET_DEPTH+G.h);ctx.fillRect(G.x+G.w,nt,5,NET_DEPTH+G.h);
+  ctx.shadowBlur=0;ctx.fillStyle='#ccc';
+  ctx.beginPath();ctx.arc(G.x-2,nt,5,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(G.x+G.w+2,nt,5,0,Math.PI*2);ctx.fill();
+}
+function drawKeeper(){
+  const kx=keeper.x,ky=keeper.y,kr=keeper.r;
+  ctx.save();
+  const aura=ctx.createRadialGradient(kx,ky,2,kx,ky,kr*3);
+  aura.addColorStop(0,'rgba(255,230,0,.2)');aura.addColorStop(1,'rgba(255,230,0,0)');
+  ctx.fillStyle=aura;ctx.beginPath();ctx.arc(kx,ky,kr*3,0,Math.PI*2);ctx.fill();
+  const tilt=keeper.diving?(keeper.diveTargetX<kx?-.3:.3):0;
+  ctx.fillStyle='#ffd700';ctx.strokeStyle='#b8960a';ctx.lineWidth=2;
+  ctx.beginPath();ctx.ellipse(kx,ky,kr,kr*.68,tilt,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(kx,ky,kr*.42,kr*.28,tilt,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#d4a574';ctx.strokeStyle='rgba(0,0,0,.28)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(kx,ky-kr*.5,kr*.37,0,Math.PI*2);ctx.fill();ctx.stroke();
+  const ge=keeper.diving?1.55:1;
+  ctx.fillStyle='#ff8c00';
+  ctx.beginPath();ctx.arc(kx-kr*ge,ky,kr*.28,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(kx+kr*ge,ky,kr*.28,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+function drawPlayerKeeper() {
+  const pkr = 15;
+  const pky = GOAL.y + 25;
+  const center = canvas.width / 2;
+  let targetX=center;
+  if(playerDiveDir==='left') targetX=GOAL.x+GOAL.w*.15;
+  if(playerDiveDir==='right') targetX=GOAL.x+GOAL.w*.85;
+  if(!playerKeeperX||playerKeeperX===0) playerKeeperX=center;
+  playerKeeperX+=(targetX-playerKeeperX)*0.22;
+  const ckx=playerKeeperX;
+  const tilt=playerDiveDir==='left'?-.4:playerDiveDir==='right'?.4:0;
+  ctx.save();
+  // Trop tôt : gardien tombe (rotation)
+  const earlyVis=(aiShotTime===null&&playerDiveDir!==null);
+  const tiltAmt=earlyVis?-.7:tilt;
+  const aura=ctx.createRadialGradient(ckx,pky,2,ckx,pky,pkr*2.5);
+  aura.addColorStop(0,'rgba(100,150,255,.25)');aura.addColorStop(1,'rgba(100,150,255,0)');
+  ctx.fillStyle=aura;ctx.beginPath();ctx.arc(ckx,pky,pkr*2.5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#1a3a8f';ctx.strokeStyle='#4060cc';ctx.lineWidth=2;
+  ctx.beginPath();ctx.ellipse(ckx,pky,pkr,pkr*.7,tiltAmt,0,Math.PI*2);ctx.fill();ctx.stroke();
+  if(earlyVis){ctx.strokeStyle='rgba(255,100,100,.6)';ctx.lineWidth=1.5;ctx.strokeRect(ckx-pkr,pky-pkr,pkr*2,pkr*2);}
+  ctx.fillStyle='#d4a574';ctx.strokeStyle='rgba(0,0,0,.3)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(ckx,pky-pkr*.5,pkr*.38,0,Math.PI*2);ctx.fill();ctx.stroke();
+  const ge=(playerDiveDir&&playerDiveDir!=='center')?1.6:1;
+  ctx.fillStyle='#ff8c00';
+  ctx.beginPath();ctx.arc(ckx-pkr*ge,pky,pkr*.3,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(ckx+pkr*ge,pky,pkr*.3,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+function drawBall(){
+  const bx=ball.x,by=ball.y,br=ball.r;
+  const tv=canvas.height-110-GOAL.y;
+  ball.shadow=Math.max(0,Math.min(1,1-(by-GOAL.y)/tv));
+  const ss=1-ball.shadow*.5;
+  ctx.save();ctx.globalAlpha=.28*(1-ball.shadow*.65);ctx.fillStyle='#000';
+  ctx.beginPath();ctx.ellipse(bx,canvas.height-100,br*ss*1.3,br*ss*.5,0,0,Math.PI*2);ctx.fill();ctx.restore();
+  ctx.save();ctx.shadowColor='rgba(255,255,255,.5)';ctx.shadowBlur=10+ball.shadow*12;
+  const bg=ctx.createRadialGradient(bx-3,by-3,1,bx,by,br);
+  bg.addColorStop(0,'#fff');bg.addColorStop(.55,'#e8e8e8');bg.addColorStop(1,'#aaa');
+  ctx.fillStyle=bg;ctx.beginPath();ctx.arc(bx,by,br,0,Math.PI*2);ctx.fill();
+  ctx.save();ctx.translate(bx,by);ctx.rotate(ball.spin*28);
+  ctx.fillStyle='#222';ctx.globalAlpha=.6;
+  for(let i=0;i<5;i++){const a=(i/5)*Math.PI*2;ctx.beginPath();ctx.arc(Math.cos(a)*5,Math.sin(a)*5,2.8,0,Math.PI*2);ctx.fill();}
+  ctx.restore();ctx.restore();
+}
+function drawAimAndPower(){
+  if(gs!==S.AIMING)return;
+  // Trail
+  if(aimTrail.length>=2){
+    ctx.save();ctx.setLineDash([5,7]);ctx.lineWidth=2.5;ctx.lineCap='round';
+    for(let i=1;i<aimTrail.length;i++){
+      ctx.strokeStyle=`rgba(255,255,255,${(i/aimTrail.length)*.65})`;
+      ctx.beginPath();ctx.moveTo(aimTrail[i-1].x,aimTrail[i-1].y);ctx.lineTo(aimTrail[i].x,aimTrail[i].y);ctx.stroke();
+    }ctx.restore();
+  }
+  // Trajectory
+  const rdx=flick.sx-flick.ex,rdy=flick.sy-flick.ey;
+  const d=Math.hypot(rdx,rdy);if(d<6)return;
+  let nx=rdx/d,ny=rdy/d;
+  const holdDur=Math.min((performance.now()-pressStart)/800,1);
+  const swipePow=Math.min(d/65,1);
+  const pow=Math.min(swipePow*.7+holdDur*.3,1);
+  const spd=5+pow*15;
+  let px=ball.x,py=ball.y,vx=nx*spd,vy=ny*spd;
+  ctx.save();ctx.setLineDash([5,9]);ctx.lineWidth=1.8;
+  for(let i=0;i<55;i++){
+    vy+=.055;vx*=.992;vy*=.992;px+=vx;py+=vy;
+    const a=(1-i/55)*.55;
+    ctx.strokeStyle=`rgba(255,255,100,${a})`;
+    if(i>0){ctx.beginPath();ctx.moveTo(px-vx,py-vy);ctx.lineTo(px,py);ctx.stroke();}
+    if(py<=GOAL.y+GOAL.h&&py>=GOAL.y-ball.r&&px>=GOAL.x&&px<=GOAL.x+GOAL.w){
+      ctx.setLineDash([]);ctx.fillStyle='rgba(45,255,90,.9)';ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.fill();break;
+    }
+    if(py<0||px<0||px>canvas.width||py>canvas.height)break;
+  }ctx.restore();
+  // Power bar on canvas (vertical, next to ball)
+  const barH=60,barW=8,barX=ball.x+ball.r+6,barY=ball.y-barH/2;
+  const fillH=barH*pow;
+  ctx.save();
+  ctx.fillStyle='rgba(0,0,0,.45)';ctx.beginPath();ctx.roundRect(barX,barY,barW,barH,4);ctx.fill();
+  ctx.fillStyle=pow<.5?'#2dff5a':pow<.85?'#ffd700':'#ff5555';
+  ctx.beginPath();ctx.roundRect(barX,barY+barH-fillH,barW,fillH,4);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.55)';ctx.font='bold 8px Rajdhani';ctx.textAlign='center';
+  ctx.fillText(Math.round(pow*100)+'%',barX+barW/2,barY-4);
+  ctx.restore();
+  // Power bar HTML sync
+  document.getElementById('powerBarFill').style.height=(pow*100)+'%';
+  document.getElementById('powerBarFill').style.background=pow<.5?'#2dff5a':pow<.85?'#ffd700':'#ff5555';
+  document.getElementById('powerVal').textContent=Math.round(pow*100)+'%';
+}
+
+// ── MAIN LOOP ──
+function update(ts){
+  const dt=Math.min((ts-lastTime)/16.67,2.5);lastTime=ts;
+  let sx=0,sy=0;
+  if(shakeFrames>0){sx=(Math.random()-.5)*shakeMag;sy=(Math.random()-.5)*shakeMag;shakeFrames--;}
+  ctx.save();ctx.translate(sx,sy);
+  ctx.clearRect(-20,-20,canvas.width+40,canvas.height+40);
+  const active=gs>=S.PLAYING&&gs!==S.IDLE;
+  if(active){
+    drawField();drawGoal();
+    // KEEPER — static in DEFEND_WAIT, moves in FLYING_AI (reacts)
+    if(gs===S.PLAYING||gs===S.AIMING){
+      // AI keeper: stays at center until shot
+      // (no movement during player aiming)
+      drawKeeper();
+    } else if(gs===S.FLYING){
+      // Keeper dives toward predicted target
+      if(keeper.diving){
+        const dkx=keeper.diveTargetX-keeper.x;
+        const step=Math.min(Math.abs(dkx),KEEPER_SPEED*dt);
+        keeper.x+=Math.sign(dkx)*step;keeper.clamp();
+      }
+      drawKeeper();
+    } else if(gs===S.DEFEND_WAIT||gs===S.FLYING_AI){
+      drawPlayerKeeper();
+    }
+    // Ball physics
+    if((gs===S.FLYING||gs===S.FLYING_AI)&&ball.moving){
+      ball.vx*=.993;ball.vy=(ball.vy+.055)*.993;
+      ball.x+=ball.vx*dt;ball.y+=ball.vy*dt;ball.spin+=ball.vx*.009;
+      if(gs===S.FLYING){
+
+        // ════════════════════════════════════════════════════════════════
+//  COLLISION POTEAUX RÉFLEXIVE (REBOND RÉALISTE)
+// ════════════════════════════════════════════════════════════════
+const postR = 8; // rayon de collision des poteaux
+const posts = [
+  {x: GOAL.x, y: GOAL.y, side: 'left'},
+  {x: GOAL.x + GOAL.w, y: GOAL.y, side: 'right'}
+];
+
+for (const p of posts) {
+  if (!resultLock && cc(ball.x, ball.y, ball.r, p.x, p.y, postR)) {
+    // Calcul de la normale (du poteau vers le ballon)
+    let nx = ball.x - p.x;
+    let ny = ball.y - p.y;
+    const nl = Math.hypot(nx, ny) || 1;
+    nx /= nl;
+    ny /= nl;
+    
+    // Réflexion vectorielle (formule de Gemini)
+    const r = reflectVector(ball.vx, ball.vy, nx, ny);
+    
+    // Coefficient de restitution (0.65 = perd 35% d'énergie)
+    const restitution = 0.65;
+    ball.vx = r.vx * restitution;
+    ball.vy = r.vy * restitution;
+    
+    // Ajoute un effet de spin aléatoire
+    ball.spin += (Math.random() - 0.5) * 0.4;
+    
+    // Repositionne le ballon juste à l'extérieur du poteau pour éviter les collisions multiples
+    const overlap = (ball.r + postR) - nl;
+    if (overlap > 0) {
+      ball.x += nx * overlap;
+      ball.y += ny * overlap;
+    }
+    
+    // Feedback visuel et sonore (optionnel)
+    triggerShake(3, 6);
+    showFeedback(p.side === 'left' ? '⬅️ POTEAU !' : '➡️ POTEAU !');
+    
+    // Le ballon continue sa trajectoire, PAS d'arrêt du jeu
+    // La détection de but ou de sortie se fera naturellement plus tard
+  }
+}
+// ════════════════════════════════════════════════════════════════
+//  COLLISION GARDIEN IA (quand le joueur tire)
+// ════════════════════════════════════════════════════════════════
+if (gs === S.FLYING && !resultLock) {
+  const now = performance.now();
+  if (now - lastKeeperCollisionTime > KEEPER_COLLISION_COOLDOWN) {
+    if (cc(ball.x, ball.y, ball.r, keeper.x, keeper.y, keeper.r)) {
+      // Calcul de la normale (du gardien vers le ballon)
+      let nx = ball.x - keeper.x;
+      let ny = ball.y - keeper.y;
+      const nl = Math.hypot(nx, ny) || 1;
+      nx /= nl;
+      ny /= nl;
+      
+      // Réflexion vectorielle
+      const r = reflectVector(ball.vx, ball.vy, nx, ny);
+      const restitution = 0.55;
+      ball.vx = r.vx * restitution;
+      ball.vy = r.vy * restitution;
+      
+      ball.spin += (Math.random() - 0.5) * 0.4;
+      
+      // Repositionnement FORCÉ : on place le ballon exactement à la distance ball.r + keeper.r + 2px
+      const minDist = ball.r + keeper.r + 2;
+      const currentDist = nl;
+      if (currentDist < minDist) {
+        ball.x = keeper.x + nx * minDist;
+        ball.y = keeper.y + ny * minDist;
+      }
+      
+      triggerShake(5, 12);
+      showFeedback('🧤 LE GARDIEN DÉVIE !');
+      match.savesA++;
+if (match.half === 1) match.savesA_h1 = (match.savesA_h1 || 0) + 1;
+
+      lastKeeperCollisionTime = now;
+    }
+  }
+}
+        // Goal
+        if(!resultLock&&ball.vy<0&&ball.y<=GOAL.y+2&&ball.y>=GOAL.y-NET_DEPTH-ball.r&&ball.x>=GOAL.x+ball.r&&ball.x<=GOAL.x+GOAL.w-ball.r){
+          onPlayerGoal();gs=S.RESULT;
+        }
+        // Out
+        if(!resultLock&&(ball.y<-30||ball.x<-30||ball.x>canvas.width+30||ball.y>canvas.height+50)){
+          onPlayerMiss('out');gs=S.RESULT;
+        }
+      }
+      if(gs===S.FLYING_AI){
+          // ════════════════════════════════════════════════════════════════
+        //  COLLISION GARDIEN JOUEUR (quand l'IA tire)
+        // ════════════════════════════════════════════════════════════════
+        if (!resultLock) {
+          const pkr = 20; // rayon du gardien joueur
+          const pky = GOAL.y + 25;
+          const center = canvas.width / 2;
+          
+          let keeperX = center;
+          if (playerDiveDir === 'left') keeperX = GOAL.x + GOAL.w * 0.15;
+          if (playerDiveDir === 'right') keeperX = GOAL.x + GOAL.w * 0.85;
+          if (playerDiveDir === 'center') keeperX = center;
+          if (!playerDiveDir) keeperX = center;
+          
+          if (cc(ball.x, ball.y, ball.r, keeperX, pky, pkr)) {
+            let nx = ball.x - keeperX;
+            let ny = ball.y - pky;
+            const nl = Math.hypot(nx, ny) || 1;
+            nx /= nl;
+            ny /= nl;
+            
+            const r = reflectVector(ball.vx, ball.vy, nx, ny);
+            const restitution = 0.6;
+            ball.vx = r.vx * restitution;
+            ball.vy = r.vy * restitution;
+            ball.spin += (Math.random() - 0.5) * 0.3;
+            
+            const overlap = (ball.r + pkr) - nl;
+            if (overlap > 0) {
+              ball.x += nx * overlap;
+              ball.y += ny * overlap;
+            }
+            
+            triggerShake(4, 10);
+            showFeedback('🧤 CONTACT !');
+            match.savesP++;
+if (match.half === 1) match.savesP_h1++;
+          }
+        }
+
+        if(!resultLock&&ball.vy<0&&ball.y<=GOAL.y+2&&ball.y>=GOAL.y-NET_DEPTH-ball.r&&ball.x>=GOAL.x+ball.r&&ball.x<=GOAL.x+GOAL.w-ball.r){
+          resolveAIShot(true);gs=S.RESULT;
+        }
+        if(!resultLock&&(ball.y<-30||ball.x<-30||ball.x>canvas.width+30||ball.y>canvas.height+50)){
+          resolveAIShot(false);gs=S.RESULT;
+        }
+      }
+    }
+    drawBall();
+    if(gs===S.AIMING)drawAimAndPower();
+  }
+  ctx.restore();
+  requestAnimationFrame(update);
+}
+
+// ── BOOT ──
+showScreen('startScreen');
+requestAnimationFrame(ts=>{lastTime=ts;requestAnimationFrame(update);});
+</script>
+</body>
+</html>
