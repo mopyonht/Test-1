@@ -589,6 +589,35 @@ auth.onAuthStateChanged(user => {
   if (currentUser) loadBal();
 });
 
+  // ════════════════════════════════════════════════════════════════
+//  MODE TEST - DÉSACTIVE LES TRANSACTIONS FIREBASE
+// ════════════════════════════════════════════════════════════════
+const TEST_MODE = true;  // ← Mets false pour réactiver Firebase
+
+if (TEST_MODE) {
+  // Désactive le débit
+  debitMise = async function(amt) {
+    console.log('🧪 TEST: Débit simulé de', amt, 'G');
+    return true;
+  };
+  
+  // Désactive le crédit
+  creditGain = async function(amt) {
+    console.log('🧪 TEST: Gain simulé de', amt, 'G');
+  };
+  
+  // Affiche un solde infini
+  loadBal = function() {
+    document.getElementById("balVal").textContent = '∞';
+    document.getElementById("krediVal").textContent = '∞';
+  };
+  
+  // Force l'affichage immédiat
+  setTimeout(() => loadBal(), 100);
+  
+  console.log('✅ MODE TEST ACTIVÉ - Transactions simulées');
+  }
+
 
 
 async function loadBal() {
